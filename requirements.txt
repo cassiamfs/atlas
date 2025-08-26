@@ -3,3 +3,5 @@ seaborn
 plotly
 geopandas
 scikit-learn
+sentence-transformers
+ipdb
