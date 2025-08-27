@@ -58,7 +58,7 @@ def get_data(file_path: str) -> pd.DataFrame:
 
 if __name__ == "__main__":
     # Example usage
-    df = get_data("/home/scofeels/code/cassiamfs/atlas/.csv/filtered_cities_final.csv")
+    df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
     results = search_places_df(df,  "i want quiet town near the sea")
     for r in results:
         print(f"City: {r['id']} Country:{r['name']} ({r['score']:.2f}): {r['description']}")
