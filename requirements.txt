@@ -6,3 +6,6 @@ geopandas
 scikit-learn
 sentence-transformers
 ipdb
+streamlit
+fastapi
+uvicorn
