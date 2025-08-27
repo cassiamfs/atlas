@@ -9,3 +9,4 @@ ipdb
 streamlit
 fastapi
 uvicorn
+chromadb
