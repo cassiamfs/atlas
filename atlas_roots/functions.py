@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import chromadb
 from chromadb.config import Settings
 
-client = chromadb.Client(Settings(chroma_db_impl="duckdb+parquet", persist_directory="path_to_your_persistence_dir"))
+client = chromadb.Client(Settings(chroma_db_impl="duckdb+parquet", persist_directory="path to directory"))
 model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
 client = chromadb.Client()
 collection = client.create_collection("places_embeddings")
@@ -25,7 +25,7 @@ def get_data(file_path: str) -> pd.DataFrame:
 
 def store_embeddings_in_chroma(df):
     """
-    Store embeddings in ChromaDB.
+    Store embeddings in Chroma.
     """
     descriptions = df['short_description'].tolist()
     embeddings = model.encode(descriptions)
