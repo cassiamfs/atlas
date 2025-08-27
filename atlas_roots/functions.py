@@ -49,16 +49,9 @@ def search_places_with_chroma(query: str, top_k: int = 3):
         n_results=top_k
     )
 
-    predictions = []
-    for result in results['documents']:
-        predictions.append({
-            "city": result['metadata']['city'],
-            "country": result['metadata']['country'],
-            "description": result['documents'][0],
-            "score": result['score']
-        })
 
-    return predictions
+
+    return results['documents']
 
 def search_places_df(df, query, top_k: int = 3):
     """
