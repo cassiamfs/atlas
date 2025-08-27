@@ -28,7 +28,7 @@ def search(query: str):
 @app.get('/predict_city')
 def predict_city(query:str, top_k: int = 3):
     # Load the cities data from CSV
-    df = get_data("/home/scofeels/code/cassiamfs/atlas/atlas_roots/.csv/filtered_cities_final.csv")
+    df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
     # Use the search_places_df function to get predictions
     results = search_places_df(df, query, top_k)
     return {"predictions": results}
