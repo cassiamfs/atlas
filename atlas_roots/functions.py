@@ -4,44 +4,39 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-def search_places_df(df, query, top_k: int = 3):
+def search_places_df(df, query, top_k: int = 3, selected_regions: List[str] = None):
     """
     Search for places from a DataFrame that match the user's continent, features, and season preferences.
     """
-
-    #Load data
     model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
     query_emb = model.encode(query, convert_to_tensor=True)
 
+    # Filter by selected regions if provided
+    if selected_regions:
+        df = df[df['region'].isin(selected_regions)]
 
-
-    # 2. User questioning
-
-    # 3. Filter description from dataframe
     descriptions = df['short_description'].tolist()
     embeddings = model.encode(descriptions, convert_to_tensor=True)
 
-    # 4. Calculate cosine similarity
     cos_scores = util.cos_sim(query_emb, embeddings)[0]
-
-    # 5. Top K results
     top_indices = cos_scores.argsort(descending=True)[:top_k]
 
-
-    # 6. Results
     results = []
     for idx in top_indices:
         row = df.iloc[int(idx)]
+        lat_lon_str = row["latitude and longitude"]
+        lat, lon = map(float, lat_lon_str.split(','))
+
         results.append({
             "id": row["city"],
             "name": row["country"],
             "description": row["short_description"],
-            "score": float(cos_scores[idx])
+            "score": float(cos_scores[idx]),
+            "latitude": lat,
+            "longitude": lon
         })
 
     return results
-
-
 
 def get_data(file_path: str) -> pd.DataFrame:
     """
@@ -51,10 +46,9 @@ def get_data(file_path: str) -> pd.DataFrame:
     df = pd.read_csv(file_path)
 
     # This section has to be according to the dataframe structure
-    df = df[['city', 'country', 'short_description', 'region']]
+    df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
 
     return df
-
 
 if __name__ == "__main__":
     # Example usage
