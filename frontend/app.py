@@ -56,11 +56,11 @@ if use_region_filter:
         default=[]
     )
 
-use_seclusion_filter = st.toggle("👤 Level of Crowdedness (1: Very quiet, 5: Very crowded)")
+use_seclusion_filter = st.toggle("👤 Level of Quieteness")
 seclusion_range = (1, 5)
 if use_seclusion_filter:
     seclusion_range = st.slider(
-    "Nivel de Aislamiento (1: Muy tranquilo, 5: Muy concurrido)",
+    "1: Less Quiet - 5: Very Quiet",
     min_value=1, max_value=5, value=(1, 5)
 )
 
@@ -145,11 +145,12 @@ if st.button("Search🔎") and user_query.strip():
                 #st.image(image_path_png, use_column_width=True)
             #MOSTRAR IMAGEN LOCAL
 
-            st.markdown(f"### **📍 {r['city']}")
-            st.markdown(f"**🌐 Country:** {r['country']}")
-            st.markdown(f"**📝 About it:** {r['short_description']}")
-            st.markdown(f"**👤 Seclusion:** {'👤' * r['seclusion']}")
-            st.markdown(f"**💸 Budget:** {budget_map[r['budget_level']]}")
+            #st.markdown(f"### **📍 {r['city']}")
+            st.markdown(f"### **📍 {r['id']}")
+            #st.markdown(f"**🌐 Country:** {r['country']}")
+            #st.markdown(f"**📝 About it:** {r['short_description']}")
+            #st.markdown(f"**👤 Seclusion:** {'👤' * r['seclusion']}")
+            #st.markdown(f"**💸 Budget:** {budget_map[r['budget_level']]}")
             st.markdown("---")
             time.sleep(.7)
 
