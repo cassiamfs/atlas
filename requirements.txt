@@ -1,3 +1,4 @@
+requests
 matplotlib
 seaborn
 plotly
@@ -6,3 +7,6 @@ scikit-learn
 sentence-transformers
 ipdb
 db-dtypes
+streamlit
+fastapi
+uvicorn

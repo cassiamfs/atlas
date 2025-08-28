@@ -33,11 +33,15 @@ def search_places_df(df, query, top_k: int = 3):
     results = []
     for idx in top_indices:
         row = df.iloc[int(idx)]
+        lat_lon_str = row["latitude and longitude"]
+        lat, lon = map(float, lat_lon_str.split(','))
         results.append({
             "id": row["city"],
             "name": row["country"],
             "description": row["short_description"],
-            "score": float(cos_scores[idx])
+            "score": float(cos_scores[idx]),
+            "latitude": lat,
+            "longitude": lon
         })
 
     return results
@@ -56,7 +60,7 @@ def get_data() -> pd.DataFrame:
     df = load_data(query)
 
     # This section has to be according to the dataframe structure
-    df = df[['city', 'country', 'short_description', 'region']]
+    df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
 
     return df
 
