@@ -62,10 +62,10 @@ def add_bg_from_url():
         }}
 
         /* Hover del botón */
-        div.stButton > button:hover {{
-            background-color: rgba(0, 0, 0, 0.7) !important; /* Mismo fondo*/
-            color: white !important; /* Mismo texto*/
-            border: 1px solid white !important;
+        div.stButton > button:hover *{{
+            background-color: rgba(255, 255, 255, 0.7) !important; /* Mismo fondo*/
+            color: rgba(0, 0, 0, 1) !important; /* Mismo texto pero transparente*/
+            text-shadow: none !important;
         }}
         </style>
         """,
