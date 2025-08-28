@@ -5,13 +5,9 @@ PROJECT = os.environ['GCP_PROJECT']
 DATASET = os.environ['BQ_DATASET']
 TABLE = os.environ['BQ_TABLE']
 
-query = f"""
-    SELECT *
-    FROM {PROJECT}.{DATASET}.{TABLE}
-    """
 
 
-def load_data():
+def load_data(query):
     client = bigquery.Client(project=PROJECT)
     query_job = client.query(query)
     result = query_job.result()
@@ -21,4 +17,9 @@ def load_data():
 
 
 if __name__ == "__main__":
-    print(load_data().head())
+    query = f"""
+    SELECT *
+    FROM {PROJECT}.{DATASET}.{TABLE}
+    """
+
+    print(load_data(query).head())
