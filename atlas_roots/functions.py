@@ -6,9 +6,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import chromadb
 from chromadb.config import Settings
 
-client = chromadb.Client(Settings(chroma_db_impl="duckdb+parquet", persist_directory="path to directory"))
-model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
 client = chromadb.Client()
+model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
 collection = client.create_collection("places_embeddings")
 
 def get_data(file_path: str) -> pd.DataFrame:
@@ -81,7 +80,7 @@ def search_places_df(df, query, top_k: int = 3):
 
 if __name__ == "__main__":
     # Example usage
-    df = get_data("/home/scofeels/code/cassiamfs/atlas/.csv/filtered_cities_final.csv")
+    df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
 
     if len(collection.get()) == 0:
         store_embeddings_in_chroma(df)  #This helps to save embeddings if the didnt previously
