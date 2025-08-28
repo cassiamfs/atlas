@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from atlas_roots.functions import get_data
+#from atlas_roots.functions import get_data
 import requests
+#from atlas_roots.functions import search_places_df
 
 def get_prediction(query, top_k):
     response = requests.get('https://atlas-917734968327.europe-southwest1.run.app/predict_city', params = {'query': query, 'top_k': top_k})
@@ -22,6 +23,15 @@ def add_bg_from_url():
         /* Colorear textos generales */
         h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {{
             color: white !important;
+            text-shadow:
+                -2px -2px 0 #000033,
+                 2px -2px 0 #000033,
+                -2px 2px 0 #000033,
+                 2px 2px 0 #000033,
+                -2px 0px 0 #000033,
+                 2px 0px 0 #000033,
+                 0px -2px 0 #000033,
+                 0px 2px 0 #000033;
         }}
 
         /* Estilo para el text area */
@@ -71,18 +81,18 @@ st.markdown("Find cities based on your description with AI✨")
 st.markdown("Try your luck by getting a destination with us ✈️")
 
 # ⚡ Cargamos el CSV automáticamente (sin que el usuario tenga que subirlo)
-df = get_data('/home/alonzo/code/alonz0gc/taxifare-website/cassiamfs/atlas/atlas_roots/.csv/filtered_cities_final.csv')
+#df = get_data('/home/alonzo/code/alonz0gc/taxifare-website/cassiamfs/atlas/atlas_roots/.csv/filtered_cities_final.csv')
 
 # Input de descripción del usuario
 use_description = st.toggle("My own description 🤓", value=True)
 
 # Region filtering
-use_region_filter = st.toggle("Filter by region 🗺️")
+#use_region_filter = st.toggle("Filter by region 🗺️")
 
-selected_regions = []
-if use_region_filter:
-    all_regions = df['region'].unique().tolist()
-    selected_regions = st.multiselect("Choose regions:", options=all_regions, default=[])
+#selected_regions = []
+#if use_region_filter:
+    #all_regions = df['region'].unique().tolist()
+    #selected_regions = st.multiselect("Choose regions:", options=all_regions, default=[])
 
 #Box for description if activated
 user_query = ""
@@ -103,11 +113,30 @@ top_k = st.number_input(
 
 if st.button("Search🔎") and user_query.strip():
     with st.spinner("🧭Working on it... Get ready for your travel🧳"):
-        breakpoint()
+        #breakpoint()
         results_api = get_prediction(user_query, top_k)
         results = results_api.json()['predictions']
+        #results = search_places_df(df, user_query, top_k)
 
-    st.subheader("Here you have😁🌟")
+    st.markdown(
+    """
+    <h2 style='
+        color: white;
+        text-shadow:
+            -2px -2px 0 #000033,
+             2px -2px 0 #000033,
+            -2px  2px 0 #000033,
+             2px  2px 0 #000033,
+            -2px  0px 0 #000033,
+             2px  0px 0 #000033,
+             0px -2px 0 #000033,
+             0px  2px 0 #000033;
+    '>
+        Here you have😁🌟
+    </h2>
+    """,
+    unsafe_allow_html=True
+)
     for r in results:
         st.markdown(f"""
         **📍 City:** {r['id']}""")
@@ -119,7 +148,7 @@ if st.button("Search🔎") and user_query.strip():
         **🔢 Score (This will not be in the final):** {r['score']:.2f}""")
         st.markdown(f"""
         """)
-
+        #breakpoint()
         map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"]} for r in results])
 
         # Show the map with possible destinations
@@ -127,7 +156,21 @@ if st.button("Search🔎") and user_query.strip():
     st.map(map_df)
     st.markdown(
     """
-    <h2 style='text-align: center; color: white;'>Enjoy your travel and thanks for trusting us</h2>
+    <h2 style='
+        text-align: center;
+        color: white;
+        text-shadow:
+            -2px -2px 0 #000033,
+             2px -2px 0 #000033,
+            -2px  2px 0 #000033,
+             2px  2px 0 #000033,
+            -2px  0px 0 #000033,
+             2px  0px 0 #000033,
+             0px -2px 0 #000033,
+             0px  2px 0 #000033;
+    '>
+        Enjoy your travel and thanks for trusting us
+    </h2>
     <h1 style='text-align: center;'>😎🎒</h1>
     """,
     unsafe_allow_html=True
