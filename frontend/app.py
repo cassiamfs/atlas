@@ -3,17 +3,15 @@ import pandas as pd
 import requests
 from streamlit_lottie import st_lottie
 import time
+import os
 
 # --- (Las funciones get_prediction, add_bg_from_url, load_lottieurl no cambian) ---
 
 def get_prediction(query, top_k):
-    # NOTA: Para que el filtro funcione bien, es mejor pedir más resultados a la API
-    # y luego filtrarlos. Considera aumentar 'top_k' si es posible en tu API.
     response = requests.get('https://atlas-917734968327.europe-southwest1.run.app/predict_city', params = {'query': query, 'top_k': top_k})
     return response
 
 def add_bg_from_url():
-    # (Este código CSS se mantiene igual)
     st.markdown(
          f"""
          <style>
@@ -38,104 +36,125 @@ def load_lottieurl(url):
 add_bg_from_url()
 st.set_page_config(page_title="Atlas Roots", page_icon="🌎", layout="wide")
 
-st.title("Atlas Roots🌍")
-st.markdown("Find cities based on your description with AI✨")
-st.markdown("Try your luck by getting a destination with us ✈️")
+if 'page' not in st.session_state:
+    st.session_state.page = 'welcome'
 
-# --- INICIO: NUEVOS FILTROS ---
-st.markdown("---")
+# --- PÁGINA 1: BIENVENIDA ---
+if st.session_state.page == 'welcome':
+    # Usamos markdown con HTML/CSS para centrar y agrandar el texto
+    st.markdown("<h1 style='text-align: center; font-size: 4em;'>Atlas Roots🌍</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; font-size: 2em;'>Find cities based on your description with AI✨</h2>", unsafe_allow_html=True)
 
-use_region_filter = st.toggle("Filter by Region 🗺️")
-selected_regions = []
-region_map = {1: 'North America', 2: 'South America', 3: 'Asia', 4: 'Oceania', 5: 'Europe', 6: 'Africa', 7: 'Middle East'}
-if use_region_filter:
-    selected_regions = st.multiselect(
-        "Region",
-        options=list(region_map.keys()),
-        format_func=lambda x: region_map[x],
-        default=[]
+    # Añadimos un espacio para que el botón no quede pegado
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    # Creamos columnas para centrar el botón
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col2:
+        if st.button("Continue 🚀", use_container_width=True):
+            st.session_state.page = 'search'  # Cambiamos el estado
+            st.rerun() # Forzamos la recarga de la app para mostrar la nueva página
+
+# --- PÁGINA 2: BÚSQUEDA (El resto de tu app) ---
+elif st.session_state.page == 'search':
+
+    st.header("Find your next destination ✈️")
+    st.markdown("Use the filters and describe your ideal place to discover")
+
+    # --- INICIO: NUEVOS FILTROS ---
+    st.markdown("---")
+
+    use_region_filter = st.toggle("Filter by Region 🗺️")
+    selected_regions = []
+    region_map = {1: 'North America', 2: 'South America', 3: 'Asia', 4: 'Oceania', 5: 'Europe', 6: 'Africa', 7: 'Middle East'}
+    if use_region_filter:
+        selected_regions = st.multiselect(
+            "Region",
+            options=list(region_map.keys()),
+            format_func=lambda x: region_map[x],
+            default=[]
+        )
+
+    use_seclusion_filter = st.toggle("👤 Level of Quieteness")
+    seclusion_range = (1, 5)
+    if use_seclusion_filter:
+        seclusion_range = st.slider(
+        "1: Less Quiet - 5: Very Quiet",
+        min_value=1, max_value=5, value=(1, 5)
     )
 
-use_seclusion_filter = st.toggle("👤 Level of Quieteness")
-seclusion_range = (1, 5)
-if use_seclusion_filter:
-    seclusion_range = st.slider(
-    "1: Less Quiet - 5: Very Quiet",
-    min_value=1, max_value=5, value=(1, 5)
-)
+
+    use_budget_filter = st.toggle("Filter by Budget 💸")
+    selected_budgets = []
+    budget_map = {1: "💰 Low Budget", 2: "💰💰 Mid Range", 3: "💰💰💰 Luxury"}
+    if use_budget_filter:
+        selected_budgets = st.multiselect(
+        "Budget",
+        options=list(budget_map.keys()),
+        format_func=lambda x: budget_map[x],
+        default=[]
+    )
+    st.markdown("---")
+
+    use_description = st.toggle("Use my own description 🤓", value=True)
+    user_query = ""
+    if use_description:
+        user_query = st.text_area(
+        "🔥✍️ Describe your destination:",
+        placeholder="Example: Quiet town near the sea with museums"
+    )
+
+    top_k = st.number_input(
+        "Amount of results",
+        min_value=1,
+        max_value=5,
+        value=3,
+        step=1,
+        format="%d"
+    )
 
 
-use_budget_filter = st.toggle("Filter by Budget 💸")
-selected_budgets = []
-budget_map = {1: "💰 Low Budget", 2: "💰💰 Mid Range", 3: "💰💰💰 Luxury"}
-if use_budget_filter:
-    selected_budgets = st.multiselect(
-    "Budget",
-    options=list(budget_map.keys()),
-    format_func=lambda x: budget_map[x],
-    default=[]
-)
-st.markdown("---")
+    if st.button("Search🔎") and user_query.strip():
+        loading_placeholder = st.empty()
+        lottie_loading_url = "https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json"
+        lottie_loading = load_lottieurl(lottie_loading_url)
 
-use_description = st.toggle("Use my own description 🤓", value=True)
-user_query = ""
-if use_description:
-    user_query = st.text_area(
-    "🔥✍️ Describe your destination:",
-    placeholder="Example: Quiet town near the sea with museums"
-)
+        with loading_placeholder.container():
+            st.markdown("<h3 style='text-align: center;'>🧭Working on it... Get ready for your travel🧳</h3>", unsafe_allow_html=True)
+            if lottie_loading:
+                st_lottie(lottie_loading, speed=1, height=140, key="loading")
 
-top_k = st.number_input(
-    "Amount of results",
-    min_value=1,
-    max_value=5,
-    value=3,
-    step=1,
-    format="%d"
-)
+        results_api = get_prediction(user_query, top_k)
+        results = results_api.json()['predictions']
+        loading_placeholder.empty()
 
+        #if results:
+            #df = pd.DataFrame(results)
 
-if st.button("Search🔎") and user_query.strip():
-    loading_placeholder = st.empty()
-    lottie_loading_url = "https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json"
-    lottie_loading = load_lottieurl(lottie_loading_url)
+            # Aplicar filtro de región
+            #df_filtered = df
+            #if selected_regions:
+                #df_filtered = df[df_filtered['region'].isin(selected_regions)]
 
-    with loading_placeholder.container():
-        st.markdown("<h3 style='text-align: center;'>🧭Working on it... Get ready for your travel🧳</h3>", unsafe_allow_html=True)
-        if lottie_loading:
-            st_lottie(lottie_loading, speed=1, height=140, key="loading")
+            # Aplicar filtro de seclusion
+            #df_filtered = df_filtered[
+                #(df_filtered['seclusion'] >= seclusion_range[0]) &
+                #(df_filtered['seclusion'] <= seclusion_range[1])
+            #]
 
-    results_api = get_prediction(user_query, top_k)
-    results = results_api.json()['predictions']
-    loading_placeholder.empty()
+            # Aplicar filtro de budget
+            #if selected_budgets:
+                #df_filtered = df_filtered[df_filtered['budget_level'].isin(selected_budgets)]
 
-    #if results:
-        #df = pd.DataFrame(results)
-
-        # Aplicar filtro de región
-        #df_filtered = df
-        #if selected_regions:
-            #df_filtered = df[df_filtered['region'].isin(selected_regions)]
-
-        # Aplicar filtro de seclusion
-        #df_filtered = df_filtered[
-            #(df_filtered['seclusion'] >= seclusion_range[0]) &
-            #(df_filtered['seclusion'] <= seclusion_range[1])
-        #]
-
-        # Aplicar filtro de budget
-        #if selected_budgets:
-            #df_filtered = df_filtered[df_filtered['budget_level'].isin(selected_budgets)]
-
-        #final_results = df_filtered.to_dict('records')
-    #else:
-        #final_results = []
+            #final_results = df_filtered.to_dict('records')
+        #else:
+            #final_results = []
 
 
-    st.markdown("<h2>Here you have😁🌟</h2>", unsafe_allow_html=True)
+        st.markdown("<h2>Here you have😁🌟</h2>", unsafe_allow_html=True)
 
-    #for r in final_results:
-    for r in results:
+        #for r in final_results:
+        for r in results:
             #image_path_jpg = f"images/{r['id']}.jpg"
             #image_path_png = f"images/{r['id']}.png"
 
@@ -154,12 +173,12 @@ if st.button("Search🔎") and user_query.strip():
             st.markdown("---")
             time.sleep(.7)
 
-    map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"]} for r in results])
-    st.map(map_df)
+        map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"]} for r in results])
+        st.map(map_df)
 
-    lottie_travel_url = "https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json"
-    lottie_travel = load_lottieurl(lottie_travel_url)
-    if lottie_travel:
-        st_lottie(lottie_travel, speed=1, height=300, key="travel")
+        lottie_travel_url = "https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json"
+        lottie_travel = load_lottieurl(lottie_travel_url)
+        if lottie_travel:
+            st_lottie(lottie_travel, speed=1, height=300, key="travel")
 
-    st.markdown("<h2 style='text-align: center;'>Enjoy your travel! 😎🎒</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center;'>Enjoy your travel! 😎🎒</h2>", unsafe_allow_html=True)
