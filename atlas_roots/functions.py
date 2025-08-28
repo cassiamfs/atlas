@@ -16,11 +16,11 @@ def get_data(file_path: str) -> pd.DataFrame:
     """
     Open data from csv.
     """
-    # Load the DataFrame from a CSV file (you can change this if you use another source)
+# Load the DataFrame from a CSV file (you can change this if you use another source)
     df = pd.read_csv(file_path)
 
 
-    # This section has to be according to the dataframe structure
+# This section has to be according to the dataframe structure
     df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
 
     return df
@@ -36,7 +36,7 @@ def store_embeddings_in_chroma(df):
     descriptions = df['short_description'].tolist()
     embeddings = model.encode(descriptions)
 
-    # Save embaddings in chroma
+# Save embaddings in chroma
     features_df = df.drop(['short_description','city'], axis=1)
 
     collection.add(
@@ -46,17 +46,26 @@ def store_embeddings_in_chroma(df):
             embeddings=list(embeddings)
         )
 
-def search_places_with_chroma(query: str, top_k: int = 3):
+def search_places_with_chroma(query: str, top_k: int = 3, region: str = None ):
     """
     Search for places in ChromaDB that match the user's query and return relevant information.
     """
     query_embedding = model.encode(query)
     collection = client.get_collection(name="places_embeddings")
 
-# Perform the query to get the top_k results
-    results = collection.query(
+    if region:
+        results = collection.query(
         query_embeddings=[query_embedding],
-        n_results=top_k  #filters
+        n_results=top_k,
+        where={
+            "region": region,
+        }
+    )
+    else:
+        results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=top_k,
+
     )
 
 # Extract relevant information from the query results
@@ -65,13 +74,11 @@ def search_places_with_chroma(query: str, top_k: int = 3):
         # Metada updated, but need changes with bigquery
         metadata = results['metadatas'][idx]
 
-        if isinstance(metadata, list):
-            metadata = metadata[0]
-
-        city = metadata.get("city", "Unknown City")
-        country = metadata.get("country", "Unknown Country")
-        lat_lon_str = metadata.get("latitude and longitude", "0,0")
+        city = results['ids'][idx]
+        country = metadata[idx].get("country")
+        lat_lon_str = metadata[idx].get("latitude and longitude")
         latitude, longitude = map(float, lat_lon_str.split(','))
+
 
 # Combine the info into a dictionary
         place_data = {
@@ -98,7 +105,7 @@ def search_places_df(df, query, top_k: int = 3):
     cos_scores = util.cos_sim(query_emb, embeddings)[0]
     top_indices = cos_scores.argsort(descending=True)[:top_k]
 
-    # Results
+# Results
     results = []
     for idx in top_indices:
         row = df.iloc[int(idx)]
@@ -118,11 +125,11 @@ def search_places_df(df, query, top_k: int = 3):
 
 
 if __name__ == "__main__":
-    # Example usage
-    df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
+# Example usage
+    #df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
 
-    store_embeddings_in_chroma(df)  #This helps to save embeddings if the didnt previously
-    result = search_places_with_chroma(query='small town in italy with museums and wine', top_k=3)
+    #store_embeddings_in_chroma(df)  #This helps to save embeddings if the didnt previously
+    result = search_places_with_chroma(query='small town in italy with museums and wine', top_k=3, region='Europe')
     print(result)
 
     #results = search_places_df(df,  "i want quiet town near the sea")
