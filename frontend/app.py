@@ -3,6 +3,8 @@ import pandas as pd
 #from atlas_roots.functions import get_data
 import requests
 #from atlas_roots.functions import search_places_df
+from streamlit_lottie import st_lottie
+import time
 
 def get_prediction(query, top_k):
     response = requests.get('https://atlas-917734968327.europe-southwest1.run.app/predict_city', params = {'query': query, 'top_k': top_k})
@@ -63,14 +65,20 @@ def add_bg_from_url():
 
         /* Hover del botón */
         div.stButton > button:hover *{{
-            background-color: rgba(255, 255, 255, 0.7) !important; /* Mismo fondo*/
-            color: rgba(0, 0, 0, 1) !important; /* Mismo texto pero transparente*/
+            background-color: rgba(255, 255, 255, 0.7) !important; /* Fondo claro*/
+            color: rgba(0, 0, 0, 1) !important; /* texto oscuro*/
             text-shadow: none !important;
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
+
+def load_lottieurl(url):
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
 
 add_bg_from_url()
 
@@ -113,6 +121,7 @@ top_k = st.number_input(
 
 if st.button("Search🔎") and user_query.strip():
     with st.spinner("🧭Working on it... Get ready for your travel🧳"):
+
         #breakpoint()
         results_api = get_prediction(user_query, top_k)
         results = results_api.json()['predictions']
@@ -148,12 +157,19 @@ if st.button("Search🔎") and user_query.strip():
         **🔢 Score (This will not be in the final):** {r['score']:.2f}""")
         st.markdown(f"""
         """)
+        time.sleep(.7)
         #breakpoint()
         map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"]} for r in results])
 
-        # Show the map with possible destinations
 
+    # Show the map with possible destinations
     st.map(map_df)
+
+    #Animation
+    lottie_travel = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json")
+
+    st_lottie(lottie_travel, speed=1, height=300, key="travel")
+
     st.markdown(
     """
     <h2 style='
