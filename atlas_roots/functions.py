@@ -5,6 +5,10 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 import chromadb
 from chromadb.config import Settings
+from chromadb import EmbeddingFunction
+from torch import mode
+
+
 
 client = chromadb.PersistentClient(path='db')
 model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
@@ -16,10 +20,12 @@ def get_data(file_path: str) -> pd.DataFrame:
     # Load the DataFrame from a CSV file (you can change this if you use another source)
     df = pd.read_csv(file_path)
 
+
     # This section has to be according to the dataframe structure
     df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
 
     return df
+
 
 def store_embeddings_in_chroma(df):
     """
@@ -32,11 +38,13 @@ def store_embeddings_in_chroma(df):
     embeddings = model.encode(descriptions)
 
     # Save embaddings in chroma
-    for i, embedding in enumerate(embeddings):
-        collection.add(
-            documents=[df.iloc[i]["short_description"]],
-            metadatas=[{"city": df.iloc[i]["city"], "country": df.iloc[i]["country"]}],
-            embeddings=[embedding]
+    features_df = df.drop(['short_description','city'], axis=1)
+
+    collection.add(
+            ids=list(df['city']),
+            documents=list(df["short_description"]),
+            metadatas=features_df.to_dict(orient="records"),
+            embeddings=list(embeddings)
         )
 
 def search_places_with_chroma(query: str, top_k: int = 3):
@@ -50,9 +58,6 @@ def search_places_with_chroma(query: str, top_k: int = 3):
         query_embeddings=[query_embedding],
         n_results=top_k
     )
-
-
-
     return results['documents']
 
 def search_places_df(df, query, top_k: int = 3):
@@ -87,13 +92,11 @@ def search_places_df(df, query, top_k: int = 3):
 
 if __name__ == "__main__":
     # Example usage
-    #df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
+    df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
 
-    result = search_places_with_chroma(query='I want quiet town near the sea', top_k=3)
+    store_embeddings_in_chroma(df)  #This helps to save embeddings if the didnt previously
+    result = search_places_with_chroma(query='small town in italy with museums and wine', top_k=3)
     print(result)
-
-    #if len(collection.get()) == 0:
-        #store_embeddings_in_chroma(df)  #This helps to save embeddings if the didnt previously
 
     #results = search_places_df(df,  "i want quiet town near the sea")
     #for r in results:
