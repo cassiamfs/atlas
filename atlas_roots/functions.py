@@ -6,9 +6,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import chromadb
 from chromadb.config import Settings
 
-client = chromadb.Client()
+client = chromadb.PersistentClient(path='db')
 model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
-collection = client.create_collection("places_embeddings")
 
 def get_data(file_path: str) -> pd.DataFrame:
     """
@@ -18,7 +17,7 @@ def get_data(file_path: str) -> pd.DataFrame:
     df = pd.read_csv(file_path)
 
     # This section has to be according to the dataframe structure
-    df = df[['city', 'country', 'short_description', 'region']]
+    df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
 
     return df
 
@@ -26,6 +25,9 @@ def store_embeddings_in_chroma(df):
     """
     Store embeddings in Chroma.
     """
+
+    collection = client.create_collection("places_embeddings")
+
     descriptions = df['short_description'].tolist()
     embeddings = model.encode(descriptions)
 
@@ -42,6 +44,7 @@ def search_places_with_chroma(query: str, top_k: int = 3):
     Search for places in ChromaDB that match the user's query.
     """
     query_embedding = model.encode(query)
+    collection = client.get_collection(name="places_embeddings")
 
     results = collection.query(
         query_embeddings=[query_embedding],
@@ -84,11 +87,14 @@ def search_places_df(df, query, top_k: int = 3):
 
 if __name__ == "__main__":
     # Example usage
-    df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
+    #df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
 
-    if len(collection.get()) == 0:
-        store_embeddings_in_chroma(df)  #This helps to save embeddings if the didnt previously
+    result = search_places_with_chroma(query='I want quiet town near the sea', top_k=3)
+    print(result)
 
-    results = search_places_df(df,  "i want quiet town near the sea")
-    for r in results:
-        print(f"City: {r['id']} Country:{r['name']} ({r['score']:.2f}): {r['description']}")
+    #if len(collection.get()) == 0:
+        #store_embeddings_in_chroma(df)  #This helps to save embeddings if the didnt previously
+
+    #results = search_places_df(df,  "i want quiet town near the sea")
+    #for r in results:
+        #print(f"City: {r['id']} Country:{r['name']} ({r['score']:.2f}): {r['description']}")
