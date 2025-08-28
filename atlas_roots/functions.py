@@ -6,7 +6,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 import chromadb
 from chromadb.config import Settings
 from chromadb import EmbeddingFunction
-from torch import mode
 
 
 
@@ -49,16 +48,40 @@ def store_embeddings_in_chroma(df):
 
 def search_places_with_chroma(query: str, top_k: int = 3):
     """
-    Search for places in ChromaDB that match the user's query.
+    Search for places in ChromaDB that match the user's query and return relevant information.
     """
     query_embedding = model.encode(query)
     collection = client.get_collection(name="places_embeddings")
 
+# Perform the query to get the top_k results
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=top_k
     )
-    return results['documents']
+
+# Extract relevant information from the query results
+    places_info = []
+    for idx, doc in enumerate(results['documents']):
+        # Metada updated, but need changes with bigquery
+        metadata = results['metadatas'][idx]
+        city = metadata.get("city", "Unknown City")
+        country = metadata.get("country", "Unknown Country")
+        lat_lon_str = metadata.get("latitude and longitude", "0,0")
+        latitude, longitude = map(float, lat_lon_str.split(','))
+
+# Combine the info into a dictionary
+        place_data = {
+            "id": city,  # This should be changed into id later with BigQuery
+            "name": country,
+            "description": doc,  # the document which contains the short description
+            "score": results['distances'][idx],  # Distance/score from the query embedding
+            "latitude": latitude,
+            "longitude": longitude
+        }
+        places_info.append(place_data)
+
+    return places_info
+
 
 def search_places_df(df, query, top_k: int = 3):
     """
