@@ -10,3 +10,4 @@ streamlit
 fastapi
 uvicorn
 chromadb
+db-dtypes
