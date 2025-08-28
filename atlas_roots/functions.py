@@ -56,7 +56,7 @@ def search_places_with_chroma(query: str, top_k: int = 3):
 # Perform the query to get the top_k results
     results = collection.query(
         query_embeddings=[query_embedding],
-        n_results=top_k
+        n_results=top_k  #filters
     )
 
 # Extract relevant information from the query results

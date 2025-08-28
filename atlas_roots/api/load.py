@@ -17,9 +17,6 @@ def load_data(query):
 
 
 if __name__ == "__main__":
-    query = f"""
-    SELECT *
-    FROM {PROJECT}.{DATASET}.{TABLE}
-    """
+    query = f"SELECT * FROM velvety-being-470310-a3.atlas.cities"
 
     print(load_data(query).head())
