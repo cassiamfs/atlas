@@ -64,6 +64,10 @@ def search_places_with_chroma(query: str, top_k: int = 3):
     for idx, doc in enumerate(results['documents']):
         # Metada updated, but need changes with bigquery
         metadata = results['metadatas'][idx]
+
+        if isinstance(metadata, list):
+            metadata = metadata[0]
+
         city = metadata.get("city", "Unknown City")
         country = metadata.get("country", "Unknown Country")
         lat_lon_str = metadata.get("latitude and longitude", "0,0")

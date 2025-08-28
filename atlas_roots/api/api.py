@@ -30,12 +30,6 @@ def predict_city(query:str, top_k: int = 3):
     """
     Predicts the top_k cities from the dataset that match the user's query.
     """
-    # Load the cities data from CSV
-    df = get_data("atlas_roots/.csv/filtered_cities_final.csv")
-
-    # Embed the city names
-    if len(collection.get()) == 0:
-        store_embeddings_in_chroma(df)
 
     # Use the search_places_df function to get predictions
     results = search_places_with_chroma(query, top_k)
