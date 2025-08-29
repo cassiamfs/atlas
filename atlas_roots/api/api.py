@@ -44,5 +44,14 @@ def geocode_address(address: str):
     url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={GOOGLE_MAPS_API_KEY}"
 
     response = requests.get(url)
-
-    return response.json()
+    data = response.json()
+    if data.get("status") == "OK":
+        result = data["results"][0]
+        location = result['geometry']['location']
+        return {
+            "formatted_address": result["formatted_address"],
+            "latitude": result["geometry"]["location"]["lat"],
+            "longitude": result["geometry"]["location"]["lng"]
+        }
+    else:
+        return {"error": "Unable to geocode the address.", "details": data}

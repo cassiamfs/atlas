@@ -6,6 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import chromadb
 from chromadb.config import Settings
 from chromadb import EmbeddingFunction
+from atlas_roots.api.load import load_data
 
 
 
@@ -46,52 +47,43 @@ def store_embeddings_in_chroma(df):
             embeddings=list(embeddings)
         )
 
-def search_places_with_chroma(query: str, top_k: int = 3, region: str = None ):
+def search_places_with_chroma(query: str, top_k: int = 3, region: str = None):
     """
-    Search for places in ChromaDB that match the user's query and return relevant information.
+    Search in ChromaDB using embeddings and return results with metadata.
     """
-    query_embedding = model.encode(query)
+    query_embedding = model.encode(query).tolist()
     collection = client.get_collection(name="places_embeddings")
 
-    if region:
-        results = collection.query(
+    filters = {"region": region} if region else None
+    results = collection.query(
         query_embeddings=[query_embedding],
         n_results=top_k,
-        where={
-            "region": region,
-        }
-    )
-    else:
-        results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=top_k,
-
+        where=filters
     )
 
-# Extract relevant information from the query results
     places_info = []
-    for idx, doc in enumerate(results['documents']):
-        # Metada updated, but need changes with bigquery
-        metadata = results['metadatas'][idx]
+    for doc, meta, place_id, distance in zip(
+        results["documents"][0],
+        results["metadatas"][0],
+        results["ids"][0],
+        results["distances"][0]
+    ):
+        lat, lon = None, None
+        if meta.get("latitude and longitude"):
+            lat, lon = map(float, meta["latitude and longitude"].split(","))
 
-        city = results['ids'][idx]
-        country = metadata[idx].get("country")
-        lat_lon_str = metadata[idx].get("latitude and longitude")
-        latitude, longitude = map(float, lat_lon_str.split(','))
-
-
-# Combine the info into a dictionary
-        place_data = {
-            "id": city,  # This should be changed into id later with BigQuery
-            "name": country,
-            "description": doc,  # the document which contains the short description
-            "score": results['distances'][idx],  # Distance/score from the query embedding
-            "latitude": latitude,
-            "longitude": longitude
-        }
-        places_info.append(place_data)
+        places_info.append({
+            "id": place_id,
+            "name": meta.get("country"),
+            "description": doc,
+            "score": float(distance),
+            "latitude": lat,
+            "longitude": lon
+        })
 
     return places_info
+
+
 
 
 def search_places_df(df, query, top_k: int = 3):
