@@ -25,14 +25,14 @@ def root():
     return {'message': 'Welcome to AtlasRoot API'}
 
 @app.get('/predict_city')
-def predict_city(query:str, top_k: int = 3):
+def predict_city(query:str, top_k: int = 3, region: str = None):
 
     """
     Predicts the top_k cities from the dataset that match the user's query.
     """
 
     # Use the search_places_df function to get predictions
-    results = search_places_with_chroma(query, top_k)
+    results = search_places_with_chroma(query, top_k, region)
     return {"predictions": results}
 
 @app.get("/geocode/")
