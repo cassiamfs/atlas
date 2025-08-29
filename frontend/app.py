@@ -3,7 +3,9 @@ import pandas as pd
 import requests
 from streamlit_lottie import st_lottie
 import time
-import os
+#import os
+
+#FUNCTIONS
 
 def get_prediction(query, top_k):
     response = requests.get('https://atlas-917734968327.europe-southwest1.run.app/predict_city', params = {'query': query, 'top_k': top_k})
@@ -33,6 +35,7 @@ def load_lottieurl(url):
             return None
         return r.json()
 
+# Web details
 add_bg_from_url()
 st.set_page_config(page_title="Atlas Roots", page_icon="🌎", layout="wide")
 
@@ -44,16 +47,13 @@ if st.session_state.page == 'welcome':
 
     st.markdown("<h1 style='text-align: center; font-size: 4em;'>Atlas Roots🌍</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: center; font-size: 2em;'>Find cities based on your description with AI✨</h2>", unsafe_allow_html=True)
-
-    # Espacio
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # Creamos columnas para centrar el botón
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
         if st.button("Continue 🚀", use_container_width=True):
-            st.session_state.page = 'search'  # Cambiamos el estado
-            st.rerun() # Forzamos la recarga de la app para mostrar la nueva página
+            st.session_state.page = 'search'
+            st.rerun()
 
 #PÁGINA 2: BÚSQUEDA
 elif st.session_state.page == 'search':
@@ -61,7 +61,7 @@ elif st.session_state.page == 'search':
     st.header("Find your next destination ✈️")
     st.markdown("Use the filters and describe your ideal place to discover")
 
-    # --- INICIO: NUEVOS FILTROS ---
+    #FILTROS
     st.markdown("---")
 
     use_region_filter = st.toggle("Filter by Region 🗺️")
@@ -113,7 +113,7 @@ elif st.session_state.page == 'search':
         format="%d"
     )
 
-
+    #FIND CITIES
     if st.button("Search🔎") and user_query.strip():
         loading_placeholder = st.empty()
         lottie_loading_url = "https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json"
@@ -153,6 +153,7 @@ elif st.session_state.page == 'search':
 
         st.markdown("<h2>Here you have😁🌟</h2>", unsafe_allow_html=True)
 
+        #SHOW RESULTS
         #for r in final_results:
         for i, r in enumerate (results):
             #image_path_jpg = f"images/{r['id']}.jpg"
@@ -178,13 +179,14 @@ elif st.session_state.page == 'search':
             st.markdown("---")
             time.sleep(.7)
 
+        #SHOW MAP with the results
         map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"]} for r in results])
         st.map(map_df)
 
-        lottie_travel_url = "https://assets5.lottiefiles.com/packages/lf20_1pxqjqps.json"
-        lottie_travel = load_lottieurl(lottie_travel_url)
-        if lottie_travel:
-            st_lottie(lottie_travel, speed=1, height=300, key="travel")
+        #lottie_travel_url = "https://assets5.lottiefiles.com/packages/lf20_1pxqjqps.json"
+        #lottie_travel = load_lottieurl(lottie_travel_url)
+        #if lottie_travel:
+            #st_lottie(lottie_travel, speed=1, height=300, key="travel")
 
         st.markdown(""" <div style='text-align: center;'>
                     <h2>Enjoy your travel and thanks for trusting us</h2>
