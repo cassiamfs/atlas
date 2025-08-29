@@ -13,61 +13,6 @@ import os
 client = chromadb.PersistentClient(path='db')
 model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
 
-    #def get_data(file_path: str) -> pd.DataFrame:
-    #"""
-    #Open data from csv.
-    #"""
-    # Load the DataFrame from a CSV file (you can change this if you use another source)
-    #df = pd.read_csv(file_path)
-
-
-    # This section has to be according to the dataframe structure
-    #df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
-
-    #return df
-
-
-def store_embeddings_in_chroma(df):
-    """
-    Store embeddings in Chroma.
-    """
-
-    collection = client.create_collection("places_embeddings")
-
-    descriptions = df['short_description'].tolist()
-    embeddings = model.encode(descriptions)
-
-# Save embaddings in chroma
-    features_df = df.drop(['short_description','city'], axis=1)
-    from sentence_transformers import SentenceTransformer, util
-from typing import List
-import pandas as pd
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-import chromadb
-from chromadb.config import Settings
-from chromadb import EmbeddingFunction
-from atlas_roots.api.load import load_data
-import os
-
-
-client = chromadb.PersistentClient(path='db')
-model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
-
-    #def get_data(file_path: str) -> pd.DataFrame:
-    #"""
-    #Open data from csv.
-    #"""
-    # Load the DataFrame from a CSV file (you can change this if you use another source)
-    #df = pd.read_csv(file_path)
-
-
-    # This section has to be according to the dataframe structure
-    #df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
-
-    #return df
-
-
 def store_embeddings_in_chroma(df):
     """
     Store embeddings in Chroma.
@@ -185,7 +130,3 @@ if __name__ == "__main__":
     #df = load_data(query)
     #store_embeddings_in_chroma(df)
     #print("Chroma updated with data from BigQuery")
-
-    #results = search_places_df(df,  "i want quiet town near the sea")
-    #for r in results:
-        #print(f"City: {r['id']} Country:{r['name']} ({r['score']:.2f}): {r['description']}")
