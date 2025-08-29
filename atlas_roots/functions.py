@@ -3,6 +3,7 @@ from typing import List
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from atlas_roots.api.load import load_data, PROJECT,DATASET, TABLE
 
 def search_places_df(df, query, top_k: int = 3):
     """
@@ -32,33 +33,41 @@ def search_places_df(df, query, top_k: int = 3):
     results = []
     for idx in top_indices:
         row = df.iloc[int(idx)]
+        lat_lon_str = row["latitude and longitude"]
+        lat, lon = map(float, lat_lon_str.split(','))
         results.append({
             "id": row["city"],
             "name": row["country"],
             "description": row["short_description"],
-            "score": float(cos_scores[idx])
+            "score": float(cos_scores[idx]),
+            "latitude": lat,
+            "longitude": lon
         })
 
     return results
 
 
 
-def get_data(file_path: str) -> pd.DataFrame:
+def get_data() -> pd.DataFrame:
     """
     Open data from csv.
     """
-    # Load the DataFrame from a CSV file (you can change this if you use another source)
-    df = pd.read_csv(file_path)
+
+    query = f"""
+    SELECT *
+    FROM {PROJECT}.{DATASET}.{TABLE}
+    """
+    df = load_data(query)
 
     # This section has to be according to the dataframe structure
-    df = df[['city', 'country', 'short_description', 'region']]
+    df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
 
     return df
 
 
 if __name__ == "__main__":
     # Example usage
-    df = get_data("/home/scofeels/code/cassiamfs/atlas/.csv/filtered_cities_final.csv")
+    df = get_data()
     results = search_places_df(df,  "i want quiet town near the sea")
     for r in results:
         print(f"City: {r['id']} Country:{r['name']} ({r['score']:.2f}): {r['description']}")
