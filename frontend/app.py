@@ -95,45 +95,81 @@ elif st.session_state.page == 'search':
     #FILTROS
     st.markdown("---")
 
+
     use_region_filter = st.toggle("Filter by Region 🗺️")
     selected_regions = []
-    region_map = {1: 'North America', 2: 'South America', 3: 'Asia', 4: 'Oceania', 5: 'Europe', 6: 'Africa', 7: 'Middle East'}
+    region_map = {
+        1: 'North America',
+        2: 'South America',
+        3: 'Asia',
+        4: 'Oceania',
+        5: 'Europe',
+        6: 'Africa',
+        7: 'Middle East'
+    }
+
     if use_region_filter:
-        selected_regions = st.multiselect(
-            "Region",
-            options=list(region_map.keys()),
-            format_func=lambda x: region_map[x],
-            default=[]
-        )
+        st.write("Select Regions:")
+
+        # The fourth column is to push the others to the left
+        col1, col2, col3, _ = st.columns([1, 1, 1, 4])
+
+        columns = [col1, col2, col3]
+
+        for idx, (region_id, region_name) in enumerate(region_map.items()):
+            col = columns[idx % len(columns)]
+            if col.checkbox(region_name, key=f"region_{region_id}"):
+                selected_regions.append(region_id)
 
     use_seclusion_filter = st.toggle("👤 Level of Quieteness")
     seclusion_range = (1, 5)
     if use_seclusion_filter:
-        seclusion_range = st.slider(
-        "1: Less Quiet - 5: Very Quiet",
-        min_value=1, max_value=5, value=(1, 5)
-    )
+        col1, _ = st.columns([2, 5])
+        with col1:
+            seclusion_range = st.slider(
+                "1: Less Quiet ←→ 5: Very Quiet",
+                min_value=1,
+                max_value=5,
+                value=(1, 5)
+            )
 
 
     use_budget_filter = st.toggle("Filter by Budget 💸")
     selected_budgets = []
-    budget_map = {1: "💰 Low Budget", 2: "💰💰 Mid Range", 3: "💰💰💰 Luxury"}
+    budget_map = {
+        1: "💰 Low Budget",
+        2: "💰💰 Mid Range",
+        3: "💰💰💰 Luxury"
+    }
+
     if use_budget_filter:
-        selected_budgets = st.multiselect(
-        "Budget",
-        options=list(budget_map.keys()),
-        format_func=lambda x: budget_map[x],
-        default=[]
-    )
+        st.write("Select Budget:")
+        col1, col2, _ = st.columns([1, 1, 5])
+        columns = [col1, col2]
+
+        for idx, (budget_id, budget_label) in enumerate(budget_map.items()):
+            col = columns[idx % len(columns)]
+            if col.checkbox(budget_label, key=f"budget_{budget_id}"):
+                selected_budgets.append(budget_id)
+
     st.markdown("---")
 
     use_description = st.toggle("Use my own words 🤓", value=True)
     user_query = ""
+
     if use_description:
+        max_chars = 150
         user_query = st.text_area(
-        "🔥✍️ Describe your destination:",
-        placeholder="Example: Quiet town near the sea with museums"
-    )
+            "🔥✍️ Describe your destination:",
+            placeholder="Example: Quiet town near the sea with museums",
+            height=100
+        )
+
+        char_count = len(user_query)
+        if char_count > max_chars:
+            st.error(f"We recommend using a maximum of 150 characters. You are using {char_count}")
+        else:
+            st.write(f"✅")
 
     col1, col2 = st.columns([1, 9])
     with col1:
