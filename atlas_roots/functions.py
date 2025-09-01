@@ -31,8 +31,6 @@ def store_embeddings_in_chroma(df):
             embeddings=list(embeddings)
         )
 
-
-
 def store_embeddings_reviews(df):
     """
     Generate embeddings for reviews and store them in Chroma.
@@ -53,15 +51,15 @@ def store_embeddings_reviews(df):
         embeddings=list(embeddings)
     )
 
-def search_reviews_with_chroma(review, top_k, type_of_places=None):
+def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str = None):
     """
     Compare new reviews with existing place descriptions' embeddings.
-
     new_reviews: List of new reviews that need to be compared.
     KNN: Number of closest places to consider for each new review.
     """
+
     query_embedding = model.encode(review).tolist()
-    collection = client.get_collection(name="places_embeddings")
+    collection = client.get_collection(name="reviews_embeddings")
 
     predictions =  []
     filters = {}
@@ -73,7 +71,7 @@ def search_reviews_with_chroma(review, top_k, type_of_places=None):
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
-            where=filters
+            where=filters if filters else None
         )
     else:
         results = collection.query(
@@ -91,11 +89,11 @@ def search_reviews_with_chroma(review, top_k, type_of_places=None):
 
 
         predictions.append({
-            "id": meta.get('city'),
+            "city": meta.get('city'),
             'place': meta.get('type_of_place'),
             'name_place': meta.get('name'),
-            "review": meta.get('review'),
-            "ratings": meta.get('ratings')
+            "review": doc,
+            "rating": meta.get('rating')
 
         })
     return {"predictions": predictions}

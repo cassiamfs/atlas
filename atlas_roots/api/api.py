@@ -37,7 +37,7 @@ def predict_city(query:str, seclusion:int=None, top_k: int=30, region:str=None )
     return {"predictions": results}
 
 @app.get('/predict_reviews')
-def predict_reviews(review, top_k:int, type_of_places=None):
+def predict_reviews(review: str, top_k: int = 5, type_of_places: str = None):
 
     """
     Predicts the top_k reviews from the dataset that match the user's query.
