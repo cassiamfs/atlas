@@ -175,7 +175,7 @@ def refresh_reviews_chroma_from_bigquery():
     dataset = os.environ["BQ_DATASET"]
     table = "reviews"
 
-    query = f"SELECT * FROM `{PROJECT}.{DATASET}.{table}`"
+    query = f"SELECT * FROM `{PROJECT}.{DATASET}.{table}` LIMIT 2000"
     df = load_data(query)
 
     collection_names = [name.name for name in client.list_collections()]
