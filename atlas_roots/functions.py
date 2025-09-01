@@ -53,42 +53,53 @@ def store_embeddings_reviews(df):
         embeddings=list(embeddings)
     )
 
-def search_reviews_with_chroma(review, k_neighbors=5):
+def search_reviews_with_chroma(review, top_k, type_of_places=None):
     """
     Compare new reviews with existing place descriptions' embeddings.
 
     new_reviews: List of new reviews that need to be compared.
     KNN: Number of closest places to consider for each new review.
     """
-    new_review_embeddings = model.encode(review)  # Generating embeddings for new reviews
+    query_embedding = model.encode(review).tolist()
+    collection = client.get_collection(name="places_embeddings")
 
-    collection = client.get_collection("reviews_embeddings") #New collection
-    existing_embeddings = collection.get_collection('places_embeddings')  # Embeddings of place descriptions
-    existing_place_ids = collection.get_ids()  # Place IDs (so you can identify which place the embedding belongs to)
+    predictions =  []
+    filters = {}
 
-    similarities = cosine_similarity(new_review_embeddings, existing_embeddings)
+    if type_of_places:
+        filters.update({"type_of_place": type_of_places})
 
-    # For each new review, find the K closest places based on cosine similarity
-    top_k_similarities = np.argsort(similarities, axis=1)[:, -k_neighbors:]
+    if len(filters.keys()) > 0:
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            where=filters
+        )
+    else:
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k
+        )
 
-    updated_clusters = []  # To store the results of the new reviews' similarity analysis
+    for doc, meta, id, distance in zip(
+        results["documents"][0],
+        results["metadatas"][0],
+        results["ids"][0],
+        results["distances"][0]
+    ):
 
-    # For each new review, determine the most similar places
-    for i, new_review in enumerate(review):
-        # Get the indices of the most similar places
-        similar_indices = top_k_similarities[i]
-        # Get the place IDs for the most similar places
-        similar_places = [existing_place_ids[idx] for idx in similar_indices]
-        # Get the corresponding similarity scores for these places
-        similar_similarities = [similarities[i][idx] for idx in similar_indices]
 
-        updated_clusters.append({
-            "new_review": new_review,
-            "similar_places": similar_places,
-            "similar_similarities": similar_similarities
+
+        predictions.append({
+            "id": meta.get('city'),
+            'place': meta.get('type_of_place'),
+            'name_place': meta.get('name'),
+            "review": meta.get('review'),
+            "ratings": meta.get('ratings')
+
         })
+    return {"predictions": predictions}
 
-    return updated_clusters
 
 def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str = None):
     """
@@ -172,7 +183,6 @@ def refresh_reviews_chroma_from_bigquery():
     """
     Load data from BigQuery and store embeddings in Chroma.
     """
-    dataset = os.environ["BQ_DATASET"]
     table = "reviews"
 
     query = f"SELECT * FROM `{PROJECT}.{DATASET}.{table}` LIMIT 2000"
@@ -191,7 +201,7 @@ if __name__ == "__main__":
     result = refresh_chroma_from_bigquery()
     print(result)
 
-    #result = search_places_with_chroma(query='small town in italy with museums and wine', seclusion=3, top_k=3, region="Europe")
+    result = search_places_with_chroma(query='small town in italy with museums and wine', seclusion=3, top_k=3, region="Europe")
     #print(result)
 
 

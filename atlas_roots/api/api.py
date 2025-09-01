@@ -37,33 +37,13 @@ def predict_city(query:str, seclusion:int=None, top_k: int=30, region:str=None )
     return {"predictions": results}
 
 @app.get('/predict_reviews')
-def predict_reviews(review, k_neighbors=5):
+def predict_reviews(review, top_k:int, type_of_places=None):
 
     """
     Predicts the top_k reviews from the dataset that match the user's query.
     """
 
     # Use the search_places_df function to get predictions
-    results = search_reviews_with_chroma(review=review, k_neighbors=k_neighbors)
+    results = search_reviews_with_chroma(review=review, top_k=top_k, type_of_places=type_of_places)
 
     return {"predictions": results}
-
-
-    """
-    Geocode an address using the Google Maps API.
-    """
-
-    url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={GOOGLE_MAPS_API_KEY}"
-
-    response = requests.get(url)
-    data = response.json()
-    if data.get("status") == "OK":
-        result = data["results"][0]
-        location = result['geometry']['location']
-        return {
-            "formatted_address": result["formatted_address"],
-            "latitude": result["geometry"]["location"]["lat"],
-            "longitude": result["geometry"]["location"]["lng"]
-        }
-    else:
-        return {"error": "Unable to geocode the address.", "details": data}
