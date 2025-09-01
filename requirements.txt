@@ -10,3 +10,4 @@ db-dtypes
 streamlit
 fastapi
 uvicorn
+googlemaps
