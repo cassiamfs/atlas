@@ -3,10 +3,7 @@ import requests
 import chromadb
 from sentence_transformers import SentenceTransformer
 from fastapi import FastAPI
-from typing import List
-from pydantic import BaseModel
-from atlas_roots import data
-from atlas_roots.functions import get_data, search_places_df, store_embeddings_in_chroma, search_places_with_chroma
+from atlas_roots.functions import  search_places_with_chroma, search_reviews_with_chroma
 
 
 
@@ -25,18 +22,33 @@ def root():
     return {'message': 'Welcome to AtlasRoot API'}
 
 @app.get('/predict_city')
-def predict_city(query:str, top_k: int = 3, region: str = None):
+def predict_city(query:str, seclusion:int=None, top_k: int=30, region:str=None ):
 
     """
     Predicts the top_k cities from the dataset that match the user's query.
     """
 
     # Use the search_places_df function to get predictions
-    results = search_places_with_chroma(query, top_k, region)
+    results = search_places_with_chroma(query=query,
+        seclusion=seclusion,
+        top_k=top_k,
+        region=region)
+
     return {"predictions": results}
 
-@app.get("/geocode/")
-def geocode_address(address: str):
+@app.get('/predict_reviews')
+def predict_reviews(review, k_neighbors=5):
+
+    """
+    Predicts the top_k reviews from the dataset that match the user's query.
+    """
+
+    # Use the search_places_df function to get predictions
+    results = search_reviews_with_chroma(review=review, k_neighbors=k_neighbors)
+
+    return {"predictions": results}
+
+
     """
     Geocode an address using the Google Maps API.
     """
