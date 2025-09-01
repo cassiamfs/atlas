@@ -146,7 +146,7 @@ elif st.session_state.page == 'search':
             format="%d"
         )
 
-    #FIND CITIES
+    #FIND CITIES (Button for search)
     if st.button("Search🔎") and user_query.strip():
         loading_placeholder = st.empty()
         lottie_loading_url = "https://assets5.lottiefiles.com/packages/lf20_1pxqjqps.json"
