@@ -51,7 +51,7 @@ def store_embeddings_reviews(df):
         embeddings=list(embeddings)
     )
 
-def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str = None):
+def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str = None, cities: list[str]=None):
     """
     Compare new reviews with existing place descriptions' embeddings.
     new_reviews: List of new reviews that need to be compared.
@@ -62,14 +62,32 @@ def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str 
     collection = client.get_collection(name="reviews_embeddings")
 
     predictions =  []
-    filters = {"type_of_place":type_of_places}
+
+    filters = {}
+    #if type_of_places:
+        #filters['type_of_place'] = type_of_places
+
+
+
+    if cities:
+        if filters:
+            # If filters already exists, combine with $and
+            filters = {'$and': [filters, {'city': {'$in': cities}}]}
+        else:
+            # If no other filters, just use the city filter
+            pass
+    filters = {'city': {'$in': cities}}
+    filters = {'city': "Antofagasta"}
+
+
+
 
 
 
     results = collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
-            where=filters if filters else None
+            where=filters
         )
 
 

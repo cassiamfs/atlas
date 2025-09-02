@@ -67,6 +67,7 @@ def search_all_in_one(
         seclusion=seclusion,
         top_k=top_k_places,
         region=region).get('predictions')
+
     best_cities_names = [each.get("id") for each in results]
 
 
@@ -76,6 +77,7 @@ def search_all_in_one(
     review_results_list = []
     for idx, each in enumerate(user_queries):
         if len(each) > 2:
-            review_results = search_reviews_with_chroma(review = each, top_k=top_k_reviews, type_of_places=types_of_places[idx])
-            breakpoint()
+            review_results = search_reviews_with_chroma(review = each, top_k=top_k_reviews, type_of_places=types_of_places[idx], cities=best_cities_names)
             review_results_list.append(review_results)
+
+    return {'predictions': review_results_list}
