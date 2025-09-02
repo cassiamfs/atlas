@@ -62,22 +62,16 @@ def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str 
     collection = client.get_collection(name="reviews_embeddings")
 
     predictions =  []
-    filters = {}
+    filters = {"type_of_place":type_of_places}
 
-    if type_of_places:
-        filters.update({"type_of_place": type_of_places})
 
-    if len(filters.keys()) > 0:
-        results = collection.query(
+
+    results = collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
             where=filters if filters else None
         )
-    else:
-        results = collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k
-        )
+
 
     for doc, meta, id, distance in zip(
         results["documents"][0],
@@ -92,13 +86,12 @@ def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str 
             "city": meta.get('city'),
             'place': meta.get('type_of_place'),
             'name_place': meta.get('name'),
-            "review": doc,
+            "review": meta.get('review'),
             "rating": meta.get('rating'),
             "score": float(distance)
 
         })
     return {"predictions": predictions}
-
 
 def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str = None):
     """
@@ -111,16 +104,16 @@ def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str 
     predictions =  []
 
     if region:
-        filters.update({"region":region})
+        filters["region"] = region
 
     if seclusion:
-        filters.update({"seclusion":seclusion})
+        filters["seclusion"] = seclusion
 
-    if len(filters.keys()) > 0:
+    #if len(filters.keys()) > 1:
         # Add logical and operator for filters
-        filters = {"$and": [{key: value} for key, value in filters.items()]}
+        #filters = {"$and": [{key: value} for key, value in filters.items()]}
 
-    if len(filters.keys()) > 0:
+    if filters:
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
@@ -157,8 +150,6 @@ def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str 
 
         })
 
-    #reranked = rerank_with_metadata(places_info, user_profile, alpha)
-
     return {"predictions": predictions}
 
 def refresh_chroma_from_bigquery():
@@ -194,7 +185,6 @@ def refresh_reviews_chroma_from_bigquery():
     store_embeddings_reviews(df)
 
     return {"status": "Chroma updated", "rows": len(df)}
-
 
 if __name__ == "__main__":
     result = refresh_chroma_from_bigquery()

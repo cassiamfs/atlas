@@ -3,7 +3,7 @@ import requests
 import chromadb
 from sentence_transformers import SentenceTransformer
 from fastapi import FastAPI
-from atlas_roots.functions import  search_places_with_chroma, search_reviews_with_chroma, search_combined_with_chroma
+from atlas_roots.functions import  search_places_with_chroma, search_reviews_with_chroma
 
 
 
@@ -48,26 +48,34 @@ def predict_reviews(review: str, top_k: int = 5, type_of_places: str = None):
 
     return {"predictions": results}
 
-@app.get("/predict_combined")
-def predict_combined(
-    query: str,
-    top_k_cities: int = 5,
-    top_k_places: int = 3,
-    top_k_reviews: int = 3,
-    seclusion: int = None,
+@app.get('/search_all_in_one')
+def search_all_in_one(
+    city_query: str,
+    seclusion: int = 3,
     region: str = None,
-    type_of_places: str = None
+    top_k_places: int = 30,
+    top_k_reviews: int = 5,
+    restaurant_review: str = '',
+    museum_review: str = '',
+    thing_to_do: str = '',
+    park_review: str = ''
+
 ):
-    """
-    For each top city, return up to 3 places with their reviews.
-    """
-    results = search_combined_with_chroma(
-        query=query,
-        top_k_cities=top_k_cities,
-        top_k_places=top_k_places,
-        top_k_reviews=top_k_reviews,
+
+    types_of_places = ['restaurants', 'museum', 'things to do', 'parks']
+    results = search_places_with_chroma(query=city_query,
         seclusion=seclusion,
-        region=region,
-        type_of_places=type_of_places
-    )
-    return results
+        top_k=top_k_places,
+        region=region).get('predictions')
+    best_cities_names = [each.get("id") for each in results]
+
+
+    user_queries = [restaurant_review,museum_review, thing_to_do, park_review ]
+
+
+    review_results_list = []
+    for idx, each in enumerate(user_queries):
+        if len(each) > 2:
+            review_results = search_reviews_with_chroma(review = each, top_k=top_k_reviews, type_of_places=types_of_places[idx])
+            breakpoint()
+            review_results_list.append(review_results)
