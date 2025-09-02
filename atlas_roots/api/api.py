@@ -65,6 +65,7 @@ def search_all_in_one(
     best_cities_names = [each.get("id") for each in results]
 
 
+
     user_queries = [restaurant_review,museum_review, thing_to_do, park_review ]
 
 

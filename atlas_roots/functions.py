@@ -109,15 +109,16 @@ def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str 
     filters = {}
     predictions =  []
 
-    if region:
+    if seclusion is not None:
+        filters["seclusion"] = seclusion
+    if region is not None:
         filters["region"] = region
 
-    if seclusion:
-        filters["seclusion"] = seclusion
 
-    #if len(filters.keys()) > 1:
+    if len(filters.keys()) > 1:
         # Add logical and operator for filters
-        #filters = {"$and": [{key: value} for key, value in filters.items()]}
+        filters = {"$and": [{key: value} for key, value in filters.items()]}
+
 
     if filters:
         results = collection.query(
