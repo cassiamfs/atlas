@@ -6,8 +6,9 @@ geopandas
 scikit-learn
 sentence-transformers
 ipdb
-db-dtypes
 streamlit
 fastapi
 uvicorn
-googlemaps
+chromadb
+db-dtypes
+google-cloud-bigquery

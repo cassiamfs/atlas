@@ -1,73 +1,200 @@
-from sentence_transformers import SentenceTransformer, util
-from typing import List
-import pandas as pd
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from atlas_roots.api.load import load_data, PROJECT,DATASET, TABLE
+from sentence_transformers import SentenceTransformer
+import chromadb
+from atlas_roots.api.load import load_data, PROJECT, DATASET, TABLE
 
-def search_places_df(df, query, top_k: int = 3):
+
+client = chromadb.PersistentClient(path='db')
+model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
+
+def store_embeddings_in_chroma(df):
     """
-    Search for places from a DataFrame that match the user's continent, features, and season preferences.
+    Store embeddings in Chroma.
     """
 
-    #Load data
-    model = SentenceTransformer("sentence-transformers/multi-qa-mpnet-base-dot-v1")
-    query_emb = model.encode(query, convert_to_tensor=True)
+    collection = client.create_collection("places_embeddings")
 
-
-
-    # 2. User questioning
-
-    # 3. Filter description from dataframe
     descriptions = df['short_description'].tolist()
-    embeddings = model.encode(descriptions, convert_to_tensor=True)
+    embeddings = model.encode(descriptions)
 
-    # 4. Calculate cosine similarity
-    cos_scores = util.cos_sim(query_emb, embeddings)[0]
-
-    # 5. Top K results
-    top_indices = cos_scores.argsort(descending=True)[:top_k]
+# Save embaddings in chroma
+    features_df = df.drop(['short_description'], axis=1)
+    unique_ids = [f"{city}_{i}" for i, city in enumerate(df['city'])]
 
 
-    # 6. Results
-    results = []
-    for idx in top_indices:
-        row = df.iloc[int(idx)]
-        lat_lon_str = row["latitude and longitude"]
-        lat, lon = map(float, lat_lon_str.split(','))
-        results.append({
-            "id": row["city"],
-            "name": row["country"],
-            "description": row["short_description"],
-            "score": float(cos_scores[idx]),
+    collection.add(
+            ids=unique_ids,
+            documents=list(df["short_description"]),
+            metadatas=features_df.to_dict(orient="records"),
+            embeddings=list(embeddings)
+        )
+
+def store_embeddings_reviews(df):
+    """
+    Generate embeddings for reviews and store them in Chroma.
+    """
+    collection = client.create_collection("reviews_embeddings")
+
+    reviews = df['review'].tolist()
+    embeddings = model.encode(reviews)
+
+    # Save embeddings in Chroma
+    features_df = df.drop(['review'], axis=1)
+    unique_ids = [f"review_{i}" for i in range(len(reviews))]
+
+    collection.add(
+        ids=unique_ids,
+        documents=list(df["review"]),
+        metadatas=features_df.to_dict(orient="records"),
+        embeddings=list(embeddings)
+    )
+
+def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str = None, cities: list[str]=None):
+    """
+    Compare new reviews with existing place descriptions' embeddings.
+    """
+
+    query_embedding = model.encode(review).tolist()
+    collection = client.get_collection(name="reviews_embeddings")
+
+    predictions =  []
+
+    filters = {}
+
+    if type_of_places:
+        filters['type_of_place'] = type_of_places
+
+    if cities:
+        if filters:
+            # If filters already exists, combine with $and
+            filters = {'$and': [filters, {'city': {'$in': cities}}]}
+        else:
+            # If no other filters, just use the city filter
+            filters = {'city': {'$in': cities}}
+
+
+    results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            where=filters
+        )
+
+
+    for doc, meta, id, distance in zip(
+        results["documents"][0],
+        results["metadatas"][0],
+        results["ids"][0],
+        results["distances"][0]
+    ):
+
+
+
+        predictions.append({
+            "city": meta.get('city'),
+            'place': meta.get('type_of_place'),
+            'name_place': meta.get('name'),
+            "review": meta.get('review'),
+            "rating": meta.get('rating'),
+            "score": float(distance)
+
+        })
+    return {"predictions": predictions}
+
+def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str = None):
+    """
+    Search in ChromaDB using embeddings and return results with metadata.
+    """
+    query_embedding = model.encode(query).tolist()
+    collection = client.get_collection(name="places_embeddings")
+
+    filters = {}
+    predictions =  []
+
+    if seclusion is not None:
+        filters["seclusion"] = seclusion
+    if region is not None:
+        filters["region"] = region
+
+
+    if len(filters.keys()) > 1:
+        # Add logical and operator for filters
+        filters = {"$and": [{key: value} for key, value in filters.items()]}
+
+
+    if filters:
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            where=filters
+        )
+    else:
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k
+        )
+
+    for doc, meta, id, distance in zip(
+        results["documents"][0],
+        results["metadatas"][0],
+        results["ids"][0],
+        results["distances"][0]
+    ):
+        lat, lon = None, None
+        if meta.get("latitude and longitude"):
+            lat, lon = map(float, meta["latitude and longitude"].split(","))
+
+
+
+        predictions.append({
+            "id": meta.get('city'),
+            'country': meta.get('country'),
+            'region': meta.get('region'),
+            'seclusion': meta.get('seclusion'),
+            "cluster": meta.get('cluster'),
+            "description": doc,
+            "score": float(distance),
             "latitude": lat,
-            "longitude": lon
+            "longitude": lon,
+
         })
 
-    return results
+    return {"predictions": predictions}
 
-
-
-def get_data() -> pd.DataFrame:
+def refresh_chroma_from_bigquery():
     """
-    Open data from csv.
+    Load data from BigQuery and store embeddings in Chroma.
     """
 
-    query = f"""
-    SELECT *
-    FROM {PROJECT}.{DATASET}.{TABLE}
-    """
+    query = f"SELECT * FROM {PROJECT}.{DATASET}.{TABLE}"
     df = load_data(query)
 
-    # This section has to be according to the dataframe structure
-    df = df[['city', 'country', 'short_description', 'region', 'latitude and longitude']]
 
-    return df
+    collection_names = [name.name for name in client.list_collections()]
+    if "places_embeddings" in collection_names:
+        client.delete_collection("places_embeddings")
 
+    store_embeddings_in_chroma(df)
+
+    return {"status": "Chroma updated", "rows": len(df)}
+
+def refresh_reviews_chroma_from_bigquery():
+    """
+    Load data from BigQuery and store embeddings in Chroma.
+    """
+    table = "reviews"
+
+    query = f"SELECT * FROM `{PROJECT}.{DATASET}.{table}` LIMIT 2000"
+    df = load_data(query)
+
+    collection_names = [name.name for name in client.list_collections()]
+    if "reviews_embeddings" in collection_names:
+        client.delete_collection("reviews_embeddings")
+
+    store_embeddings_reviews(df)
+
+    return {"status": "Chroma updated", "rows": len(df)}
 
 if __name__ == "__main__":
-    # Example usage
-    df = get_data()
-    results = search_places_df(df,  "i want quiet town near the sea")
-    for r in results:
-        print(f"City: {r['id']} Country:{r['name']} ({r['score']:.2f}): {r['description']}")
+    result = refresh_chroma_from_bigquery()
+    print(result)
+
+    result = search_places_with_chroma(query='small town in italy with museums and wine', seclusion=3, top_k=3, region="Europe")
