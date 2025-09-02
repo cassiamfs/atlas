@@ -1,9 +1,6 @@
 from sentence_transformers import SentenceTransformer
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 import chromadb
 from atlas_roots.api.load import load_data, PROJECT, DATASET, TABLE
-import os
 
 
 client = chromadb.PersistentClient(path='db')
@@ -54,8 +51,6 @@ def store_embeddings_reviews(df):
 def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str = None, cities: list[str]=None):
     """
     Compare new reviews with existing place descriptions' embeddings.
-    new_reviews: List of new reviews that need to be compared.
-    KNN: Number of closest places to consider for each new review.
     """
 
     query_embedding = model.encode(review).tolist()
@@ -64,10 +59,9 @@ def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str 
     predictions =  []
 
     filters = {}
-    #if type_of_places:
-        #filters['type_of_place'] = type_of_places
 
-
+    if type_of_places:
+        filters['type_of_place'] = type_of_places
 
     if cities:
         if filters:
@@ -75,13 +69,7 @@ def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str 
             filters = {'$and': [filters, {'city': {'$in': cities}}]}
         else:
             # If no other filters, just use the city filter
-            pass
-    filters = {'city': {'$in': cities}}
-    filters = {'city': "Antofagasta"}
-
-
-
-
+            filters = {'city': {'$in': cities}}
 
 
     results = collection.query(
