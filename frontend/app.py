@@ -4,6 +4,10 @@ import requests
 from streamlit_lottie import st_lottie
 import time
 #import os
+#import json
+#from streamlit_oauth import OAuth2Component
+#import google.oauth2.credentials
+#from google.cloud import firestore
 
 #def get_prediction(query, top_k, regions=None, budget=None, seclusion=None):
     #params = {'query': query, 'top_k': top_k}
