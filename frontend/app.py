@@ -19,7 +19,7 @@ import time
         #params['seclusion_min'] = seclusion[0]
         #params['seclusion_max'] = seclusion[1]
 
-    #base_url = 'https://atlas-917734968327.europe-southwest1.run.app'
+    #base_url = 'https://atlas-626932554468.europe-southwest1.run.app/'
 
     #response = requests.get(f'{base_url}/predict_city', params=params)
     #return response
@@ -42,8 +42,8 @@ import time
     #return []
 
 #FUNCTIONS
-def get_prediction(query, top_k):
-    response = requests.get('https://atlas-917734968327.europe-southwest1.run.app/predict_city', params = {'query': query, 'top_k': top_k})
+def get_prediction(query, top_k, restaurant_review, museum_review, thing_to_do, park_review):
+    response = requests.get('https://atlas-518816232020.europe-southwest1.run.app/search_all_in_one', params = {'city_query': query, 'top_k_places': top_k, 'restaurant_review': restaurant_review, 'museum_review': museum_review, 'thing_to_do': thing_to_do, 'park_review': park_review, 'top_k_reviews': 50})
     return response
 
 def add_bg_from_url():
@@ -158,6 +158,7 @@ elif st.session_state.page == 'search':
 
     st.markdown("---")
 
+    #FULL DESCRIPTION
     use_description = st.toggle("Use my own words 🤓", value=True)
     user_query = ""
 
@@ -166,6 +167,78 @@ elif st.session_state.page == 'search':
         user_query = st.text_area(
             "🔥✍️ Describe your destination:",
             placeholder="Example: Quiet town near the sea with museums",
+            height=100
+        )
+
+        char_count = len(user_query)
+        if char_count > max_chars:
+            st.error(f"We recommend using a maximum of 150 characters. You are using {char_count}")
+        else:
+            st.write(f"✅")
+
+    #RESTAURANTS DESCRIPTION
+    use_description_rest = st.toggle("Restaurants 🍽️", value=True)
+    user_query = ""
+
+    if use_description_rest:
+        max_chars = 150
+        user_query = st.text_area(
+            "✍️ Here you can specify about cuisine:",
+            placeholder="Example: Asian food",
+            height=100
+        )
+
+        char_count = len(user_query)
+        if char_count > max_chars:
+            st.error(f"We recommend using a maximum of 150 characters. You are using {char_count}")
+        else:
+            st.write(f"✅")
+
+    #MUSEUMS DESCRIPTION
+    use_description_museum = st.toggle("Museums 🏛️", value=True)
+    user_query = ""
+
+    if use_description_museum:
+        max_chars = 150
+        user_query = st.text_area(
+            "✍️ Here you can specify about museums:",
+            placeholder="Example: Modern Art",
+            height=100
+        )
+
+        char_count = len(user_query)
+        if char_count > max_chars:
+            st.error(f"We recommend using a maximum of 150 characters. You are using {char_count}")
+        else:
+            st.write(f"✅")
+
+    #ACTIVITIES DESCRIPTION
+    use_description_tdt = st.toggle("Things to do ", value=True)
+    user_query = ""
+
+    if use_description_tdt:
+        max_chars = 150
+        user_query = st.text_area(
+            "✍️ Here you can specify about activities:",
+            placeholder="Example: Kayak",
+            height=100
+        )
+
+        char_count = len(user_query)
+        if char_count > max_chars:
+            st.error(f"We recommend using a maximum of 150 characters. You are using {char_count}")
+        else:
+            st.write(f"✅")
+
+    #PARKS DESCRIPTION
+    use_description_park = st.toggle("Parks ", value=True)
+    user_query = ""
+
+    if use_description_park:
+        max_chars = 150
+        user_query = st.text_area(
+            "✍️ Here you can specify about parks:",
+            placeholder="Example: Green Fresh Parks",
             height=100
         )
 
@@ -187,7 +260,8 @@ elif st.session_state.page == 'search':
         )
 
     #FIND CITIES (Button for search)
-    if st.button("Search🔎") and user_query.strip():
+    if st.button("Search🔎"):
+        st.write('search was pressed')
         loading_placeholder = st.empty()
         lottie_loading_url = "https://assets5.lottiefiles.com/packages/lf20_1pxqjqps.json"
         lottie_loading = load_lottieurl(lottie_loading_url)
@@ -211,9 +285,11 @@ elif st.session_state.page == 'search':
 
         #st.session_state.results = results_api.json().get('predictions', [])
 
-        results_api = get_prediction(user_query, top_k)
-        results = results_api.json()['predictions']
+        results_api = get_prediction(user_query, museum_review=use_description_museum, park_review=use_description_park, thing_to_do=use_description_tdt, restaurant_review=use_description_rest, top_k = top_k)
+        results = results_api.json()
         loading_placeholder.empty()
+
+        st.write(results)
 
         #if results:
             #df = pd.DataFrame(results)
