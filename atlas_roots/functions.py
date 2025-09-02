@@ -201,9 +201,3 @@ if __name__ == "__main__":
     print(result)
 
     result = search_places_with_chroma(query='small town in italy with museums and wine', seclusion=3, top_k=3, region="Europe")
-    #print(result)
-
-
-
-    #query = "SELECT * FROM velvety-being-470310-a3.atlas.cities"
-    #df = load_data(query)

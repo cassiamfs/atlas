@@ -3,7 +3,7 @@ import requests
 import chromadb
 from sentence_transformers import SentenceTransformer
 from fastapi import FastAPI
-from atlas_roots.functions import  search_places_with_chroma, search_reviews_with_chroma
+from atlas_roots.functions import  search_places_with_chroma, search_reviews_with_chroma, search_combined_with_chroma
 
 
 
@@ -47,3 +47,27 @@ def predict_reviews(review: str, top_k: int = 5, type_of_places: str = None):
     results = search_reviews_with_chroma(review=review, top_k=top_k, type_of_places=type_of_places)
 
     return {"predictions": results}
+
+@app.get("/predict_combined")
+def predict_combined(
+    query: str,
+    top_k_cities: int = 5,
+    top_k_places: int = 3,
+    top_k_reviews: int = 3,
+    seclusion: int = None,
+    region: str = None,
+    type_of_places: str = None
+):
+    """
+    For each top city, return up to 3 places with their reviews.
+    """
+    results = search_combined_with_chroma(
+        query=query,
+        top_k_cities=top_k_cities,
+        top_k_places=top_k_places,
+        top_k_reviews=top_k_reviews,
+        seclusion=seclusion,
+        region=region,
+        type_of_places=type_of_places
+    )
+    return results
