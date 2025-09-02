@@ -93,7 +93,8 @@ def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str 
             'place': meta.get('type_of_place'),
             'name_place': meta.get('name'),
             "review": doc,
-            "rating": meta.get('rating')
+            "rating": meta.get('rating'),
+            "score": float(distance)
 
         })
     return {"predictions": predictions}
