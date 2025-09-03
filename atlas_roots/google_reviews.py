@@ -2,7 +2,7 @@ from google.cloud import bigquery
 import pandas as pd
 import os
 
-from googlemaps.places import places
+#from googlemaps.places import places
 from atlas_roots.api.load import load_data
 import googlemaps
 API_KEY = os.environ["API_KEY"]
