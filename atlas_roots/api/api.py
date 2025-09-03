@@ -53,23 +53,18 @@ def search_all_in_one(
     museum_review: str = '',
     thing_to_do: str = '',
     park_review: str = ''
-
 ):
 
     types_of_places = ['restaurants', 'museum', 'things to do', 'parks']
-    results = search_places_with_chroma(query=city_query,
-        seclusion=seclusion,
-        top_k=top_k_places,
-        region=region).get('predictions')
+
+    results = search_places_with_chroma(query=city_query, seclusion=seclusion, top_k=top_k_places, region=region).get('predictions')
 
     best_cities_names = [each.get("id") for each in results]
 
-
-
     user_queries = [restaurant_review,museum_review, thing_to_do, park_review ]
 
-
     review_results_object = {}
+
     for idx, each in enumerate(user_queries):
         if len(each) > 2:
             review_results = search_reviews_with_chroma(review = each, top_k=top_k_reviews, type_of_places=types_of_places[idx], cities=best_cities_names)
