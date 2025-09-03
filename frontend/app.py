@@ -3,6 +3,8 @@ import pandas as pd
 import requests
 from streamlit_lottie import st_lottie
 import time
+
+clusters_df = pd.read_csv("frontend/60_clusters.csv")
 #import os
 #import json
 #from streamlit_oauth import OAuth2Component
@@ -42,6 +44,107 @@ import time
     #return []
 
 #FUNCTIONS
+
+def analyze_cities(data):
+
+    # Dictionary to store all information about each city
+    # Structure: {city_name: {'categories': {category: [ratings]}, 'all_ratings': [all_ratings]}}
+    city_data = {}
+
+    # STEP 1: Collect all city data from the input
+    for category, content in data.items():
+        # Skip if category doesn't have predictions (safety check)
+        if 'predictions' not in content:
+            continue
+
+        # Process each place in this category
+        for place in content['predictions']:
+            city = place['city']
+            rating = place['rating']
+
+            # Initialize city entry if it doesn't exist
+            if city not in city_data:
+                city_data[city] = {'categories': {}, 'all_ratings': []}
+
+            # Initialize category list for this city if it doesn't exist
+            if category not in city_data[city]['categories']:
+                city_data[city]['categories'][category] = []
+
+            # Store the rating in both category-specific and overall lists
+            city_data[city]['categories'][category].append(rating)
+            city_data[city]['all_ratings'].append(rating)
+
+    # Initialize results dictionary
+    results = {
+        'counts': {},           # How many places each city has per category
+        'best_per_category': {},  # Best city for each category
+        'overall_best': None    # Best city overall
+    }
+
+    # STEP 2: Count how many places each city has in each category
+    for category in data.keys():
+        if 'predictions' in data[category]:
+            city_counts = {}  # Will store {city: count} for this category
+
+            # Count places for each city in this category
+            for place in data[category]['predictions']:
+                city = place['city']
+                city_counts[city] = city_counts.get(city, 0) + 1
+
+            results['counts'][category] = city_counts
+
+    # STEP 3: Find the best city for each category (highest average rating)
+    for category in data.keys():
+        if 'predictions' not in data[category]:
+            continue
+
+        best_city = None
+        best_avg = 0
+
+        # Check each city that appears in this category
+        for city, info in city_data.items():
+            if category in info['categories']:
+                # Calculate average rating for this city in this category
+                ratings_in_category = info['categories'][category]
+                avg = sum(ratings_in_category) / len(ratings_in_category)
+
+                # Update best city if this one is better
+                if avg > best_avg:
+                    best_avg = avg
+                    best_city = city
+
+        # Store the best city info if we found one
+        if best_city:
+            results['best_per_category'][category] = {
+                'city': best_city,
+                'avg_rating': round(best_avg, 2),
+                'count': len(city_data[best_city]['categories'][category])
+            }
+
+    # STEP 4: Find overall best city (highest average across ALL categories)
+    best_city = None
+    best_avg = 0
+
+    # Check each city's overall performance
+    for city, info in city_data.items():
+        # Calculate average of ALL ratings for this city
+        overall_avg = sum(info['all_ratings']) / len(info['all_ratings'])
+
+        # Update best city if this one is better
+        if overall_avg > best_avg:
+            best_avg = overall_avg
+            best_city = city
+
+    # Store overall best city information
+    results['overall_best'] = {
+        'city': best_city,
+        'avg_rating': round(best_avg, 2),
+        'total_places': len(city_data[best_city]['all_ratings']),
+        'categories': list(city_data[best_city]['categories'].keys())
+    }
+
+    return results
+
 def get_prediction(query, top_k, restaurant_review, museum_review, thing_to_do, park_review):
     response = requests.get('https://atlas-518816232020.europe-southwest1.run.app/search_all_in_one', params = {'city_query': query, 'top_k_places': top_k, 'restaurant_review': restaurant_review, 'museum_review': museum_review, 'thing_to_do': thing_to_do, 'park_review': park_review, 'top_k_reviews': 50})
     return response
@@ -165,7 +268,7 @@ elif st.session_state.page == 'search':
     if use_description:
         max_chars = 150
         user_query = st.text_area(
-            "🔥✍️ Describe your destination:",
+            "🔥✍️ Describe your destination:", value = 'Small city on the beach',
             placeholder="Example: Quiet town near the sea with museums",
             height=100
         )
@@ -184,7 +287,7 @@ elif st.session_state.page == 'search':
         max_chars = 150
         user_query = st.text_area(
             "✍️ Here you can specify about cuisine:",
-            placeholder="Example: Asian food",
+            placeholder="Example: Asian food", value='Italian food',
             height=100
         )
 
@@ -195,7 +298,7 @@ elif st.session_state.page == 'search':
             st.write(f"✅")
 
     #MUSEUMS DESCRIPTION
-    use_description_museum = st.toggle("Museums 🏛️", value=True)
+    use_description_museum = st.toggle("Museums 🏛️", value=False)
     user_query = ""
 
     if use_description_museum:
@@ -213,7 +316,7 @@ elif st.session_state.page == 'search':
             st.write(f"✅")
 
     #ACTIVITIES DESCRIPTION
-    use_description_tdt = st.toggle("Things to do ", value=True)
+    use_description_tdt = st.toggle("Things to do ", value=False)
     user_query = ""
 
     if use_description_tdt:
@@ -231,7 +334,7 @@ elif st.session_state.page == 'search':
             st.write(f"✅")
 
     #PARKS DESCRIPTION
-    use_description_park = st.toggle("Parks ", value=True)
+    use_description_park = st.toggle("Parks ", value=False)
     user_query = ""
 
     if use_description_park:
@@ -287,38 +390,37 @@ elif st.session_state.page == 'search':
 
         results_api = get_prediction(user_query, museum_review=use_description_museum, park_review=use_description_park, thing_to_do=use_description_tdt, restaurant_review=use_description_rest, top_k = top_k)
         results = results_api.json()
+        st.write(results)
+        best_cities = analyze_cities(results)
         loading_placeholder.empty()
 
-        st.write(results)
-
-        #if results:
-            #df = pd.DataFrame(results)
-
-            # Aplicar filtro de región
-            #df_filtered = df
-            #if selected_regions:
-                #df_filtered = df[df_filtered['region'].isin(selected_regions)]
-
-            # Aplicar filtro de seclusion
-            #df_filtered = df_filtered[
-                #(df_filtered['seclusion'] >= seclusion_range[0]) &
-                #(df_filtered['seclusion'] <= seclusion_range[1])
-            #]
-
-            # Aplicar filtro de budget
-            #if selected_budgets:
-                #df_filtered = df_filtered[df_filtered['budget_level'].isin(selected_budgets)]
-
-            #final_results = df_filtered.to_dict('records')
-        #else:
-            #final_results = []
-
+        st.write(best_cities)
 
         st.markdown("<h2>Here you have😁🌟</h2>", unsafe_allow_html=True)
 
+        best_restaurant_city = best_cities["best_per_category"]["restaurants"]
+        brc_name = best_restaurant_city["city"]
+
+        brc_row = clusters_df.loc[clusters_df.city== brc_name]
+        st.dataframe(brc_row)
+
+        brc_rating =  best_restaurant_city["avg_rating"]
+        brc_count = best_restaurant_city["count"]
+
+        st.header("Best city for restaurants")
+        st.text(brc_name)
+        st.text(f"Rating {brc_rating}")
+        st.text(f"Count {brc_count}")
+
+        restaurnt_reviews = results["restaurants"]["predictions"]
+        brc_reviews = [review for review in restaurnt_reviews if review["city"] ==  brc_name]
+        for review in brc_reviews:
+            st.text(review["name_place"])
+            st.text(review["review"])
+
         #SHOW RESULTS
         #for i, r in enumerate(st.session_state.results):
-        for i, r in enumerate (results):
+        #for i, r in enumerate (best_cities):
             #col1, col2 = st.columns([1, 2]) # Imagen y Texto
 
             #with col1:
@@ -326,12 +428,12 @@ elif st.session_state.page == 'search':
                 #st.image(image_path, use_column_width=True)
 
             #with col2:
-            st.markdown(f"""
-            <div style='animation: fadeIn 1s ease-in-out {i*0.5}s forwards; opacity:0;'>
-                <h3> ### 📍 {r['id']}</h3>
-                <hr>
-            </div>
-            """, unsafe_allow_html=True)
+            #st.markdown(f"""
+            #<div style='animation: fadeIn 1s ease-in-out {i*0.5}s forwards; opacity:0;'>
+                #<h3> ### 📍 {r['city']}</h3>
+                #<hr>
+            #</div>
+            #""", unsafe_allow_html=True)
                 #st.markdown(f"🌐 Country: {r['country']}")
                 #st.markdown(f"📝 About it: {r['short_description']}")
                 #st.markdown(f"👤 Seclusion: {r['seclusion']}")
@@ -351,8 +453,8 @@ elif st.session_state.page == 'search':
                                 #st.markdown(f" {alt.get('city', 'N/A')}, {alt.get('country', 'N/A')}: {alt.get('short_description', '')}")
                         #else:
                             #st.write("No other similar options were found in our database.")
-            st.markdown("---")
-            time.sleep(.4)
+            #st.markdown("---")
+            #time.sleep(.4)
 
         #SHOW MAP with the results
         #map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"]} for r in st.session_state.results])
@@ -375,7 +477,7 @@ elif st.session_state.page == 'search':
                 )
 
 
-        st.markdown(""" <div style='text-align: center;'>
-                    <h2>Enjoy your travel and thanks for trusting us</h2>
-                    <div style='font-size: 4em;'>😎🎒</div>
-                    </div> """, unsafe_allow_html=True)
+        #st.markdown(""" #<div style='text-align: center;'>
+                    #<h2>Enjoy your travel and thanks for trusting us</h2>
+                    #<div style='font-size: 4em;'>😎🎒</div>
+                    #</div> """, unsafe_allow_html=True)
