@@ -44,20 +44,22 @@ def predict_reviews(review: str, top_k: int = 5, type_of_places: str = None):
 
 @app.get('/search_all_in_one')
 def search_all_in_one(
-    city_query: str,
-    seclusion: int = 3,
+    city_query: str = "I want a quiet destination with lots of parks, and where I can enjoy good restaurant with music at night",
+    seclusion: str="1,2,3",
+    budget_level: str="1,2,3",
     region: str = None,
     top_k_places: int = 30,
     top_k_reviews: int = 5,
-    restaurant_review: str = '',
+    restaurant_review: str = 'I want best italian food',
     museum_review: str = '',
     thing_to_do: str = '',
     park_review: str = ''
+
 ):
 
     types_of_places = ['restaurants', 'museum', 'things to do', 'parks']
 
-    results = search_places_with_chroma(query=city_query, seclusion=seclusion, top_k=top_k_places, region=region).get('predictions')
+    results = search_places_with_chroma(query=city_query, seclusion=seclusion, budget_level=budget_level, top_k=top_k_places, region=region).get('predictions')
 
     best_cities_names = [each.get("id") for each in results]
 

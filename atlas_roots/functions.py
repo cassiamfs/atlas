@@ -99,7 +99,7 @@ def search_reviews_with_chroma(review: str, top_k: int = 5, type_of_places: str 
         })
     return {"predictions": predictions}
 
-def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str = None):
+def search_places_with_chroma(query: str, seclusion: list[int], budget_level: list[int], top_k: int = 5, region: str = None):
     """
     Search in ChromaDB using embeddings and return results with metadata.
     """
@@ -109,15 +109,31 @@ def search_places_with_chroma(query: str,seclusion, top_k: int = 5, region: str 
     filters = {}
     predictions =  []
 
-    if seclusion is not None:
-        filters["seclusion"] = seclusion
-    if region is not None:
-        filters["region"] = region
+    filter_conditions = []
+
+    if seclusion:
+        if "," in seclusion:
+            seclusion = [int(s) for s in seclusion.split(",")]
+        else:
+            seclusion = [int(seclusion)]
+        filter_conditions.append({'seclusion': {'$in': seclusion}})
+    if budget_level:
+        if "," in budget_level:
+            budget_level = [int(b) for b in budget_level.split(",")]
+        else:
+            budget_level = [int(budget_level)]
+        filter_conditions.append({'budget_level': {'$in': budget_level}})
+    if region:
+        filter_conditions.append({'region': region})
 
 
-    if len(filters.keys()) > 1:
+    if seclusion or budget_level or region:
+        filters = {'$and': [*filter_conditions]}
+
+
+    #if len(filters.keys()) > 1:
         # Add logical and operator for filters
-        filters = {"$and": [{key: value} for key, value in filters.items()]}
+        #filters = {"$and": [{key: value} for key, value in filters.items()]}
 
 
     if filters:
