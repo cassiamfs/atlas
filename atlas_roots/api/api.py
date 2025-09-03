@@ -45,7 +45,7 @@ def predict_reviews(review: str, top_k: int = 5, type_of_places: str = None):
 @app.get('/search_all_in_one')
 def search_all_in_one(
     city_query: str = "I want a quiet destination with lots of parks, and where I can enjoy good restaurant with music at night",
-    seclusion: str="1,2,3",
+    seclusion: str="3,4,5",
     budget_level: str="1,2,3",
     region: str = None,
     top_k_places: int = 30,

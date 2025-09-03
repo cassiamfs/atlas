@@ -1,5 +1,5 @@
 FROM python:3.12.11-slim-bookworm
-COPY  requirements.txt /requirements.txt
+COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 COPY setup.py /atlas_roots/setup.py
 COPY atlas_roots /atlas_roots
