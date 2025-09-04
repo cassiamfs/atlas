@@ -160,33 +160,142 @@ def get_prediction(
     return response
 
 
-def add_bg_from_url():
+# Estilo para la página de bienvenida
+def add_welcome_page_style():
     st.markdown(
         f"""
          <style>
-         .stApp {{ background-image: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
-         background-size: cover; background-position: center; background-repeat: no-repeat; }}
-         h1, h2, h3, p, label, .stMarkdown {{ color: white !important; text-shadow: -2px -2px 0 #000033, 2px -2px 0 #000033, -2px 2px 0 #000033, 2px 2px 0 #000033, -2px 0px 0 #000033, 2px 0px 0 #000033, 0px -2px 0 #000033, 0px 2px 0 #000033; }}
-         textarea, .stTextArea textarea {{ background-color: rgba(255, 255, 255, 0.9) !important; color: black !important; border: 1px solid white !important; }}
-         textarea::placeholder {{ color: black !important; opacity: 0.4 !important; }}
-         .stNumberInput input {{ background-color: rgba(255, 255, 255, 0.9) !important; color: black !important; border: 1px solid white !important; }}
-         div.stButton > button {{ background-color: rgba(0, 0, 0, 0.7) !important; color: white !important; border: 1px solid white !important; }}
-         div.stButton > button:hover *{{ background-color: rgba(255, 255, 255, 0.7) !important; color: rgba(0, 0, 0, 1) !important; text-shadow: none !important; }}
-         @keyframes fadeIn {{ from {{opacity: 0; transform: translateY(20px);}}
-        to {{opacity: 1; transform: translateY(0);}} }} h1, h2, h3 {{ animation: fadeIn 1s ease-in-out; }}
-        .stButton > button {{ transition: all 0.3s ease-in-out; }} .stButton > button:hover {{ transform: scale(1.1); }}
+         .stApp {{
+             background-image: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+             background-size: cover;
+             background-position: center;
+             background-repeat: no-repeat;
+         }}
+         h1, h2, h3, p, label, .stMarkdown {{
+             color: white !important;
+             text-shadow: -2px -2px 0 #000033, 2px -2px 0 #000033, -2px 2px 0 #000033, 2px 2px 0 #000033, -2px 0px 0 #000033, 2px 0px 0 #000033, 0px -2px 0 #000033, 0px 2px 0 #000033;
+         }}
+         div.stButton > button {{
+             background-color: rgba(0, 0, 0, 0.7) !important;
+             color: white !important;
+             border: 1px solid white !important;
+             transition: all 0.3s ease-in-out;
+         }}
+         div.stButton > button:hover {{
+             transform: scale(1.1);
+             background-color: rgba(255, 255, 255, 0.7) !important;
+             color: rgba(0, 0, 0, 1) !important;
+             text-shadow: none !important;
+         }}
          </style>
          """,
         unsafe_allow_html=True,
     )
 
 
+# Estilo para la página de búsqueda
+def add_search_page_style():
+    st.markdown(
+        f"""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        /* --- CAMBIO 1.1: FONDO ANIMADO Y OSCURO --- */
+        @keyframes gradient_animation {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
+        }}
+        .stApp {{
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #000000);
+            background-size: 400% 400%;
+            animation: gradient_animation 15s ease infinite;
+        }}
+
+        /* --- CAMBIO 1.2: NUEVA TIPOGRAFÍA Y ESTILOS GENERALES --- */
+        body, .stApp, h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stButton > button {{
+            font-family: 'Poppins', sans-serif !important;
+            color: white !important;
+        }}
+
+        /* Estilos para inputs y botones para que contrasten */
+        textarea, .stTextArea textarea, .stNumberInput input {{
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            color: black !important;
+            border: 1px solid white !important;
+            font-family: 'Poppins', sans-serif !important;
+        }}
+        textarea::placeholder {{
+            color: black !important;
+            opacity: 0.4 !important;
+        }}
+        div.stButton > button {{
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid white !important;
+            transition: all 0.3s ease-in-out;
+        }}
+        div.stButton > button:hover {{
+            transform: scale(1.05);
+            background-color: rgba(255, 255, 255, 1) !important;
+            color: black !important;
+        }}
+        .stExpander {{
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 10px;
+        }}
+
+        /* ESTILO PARA EL CONTENIDO DE LOS EXPANDERS */
+        .expander-content {{
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }}
+        .expander-content h4 {{
+            font-size: 1.1em;
+            font-weight: 600;
+        }}
+        .expander-content h6 {{
+            font-size: 0.9em;
+            font-weight: 300;
+            color: #E0E0E0 !important; /* Un poco más suave que el blanco puro */
+        }}
+
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# def add_bg_from_url():
+# st.markdown(
+# f"""
+# <style>
+# .stApp {{ background-image: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+# background-size: cover; background-position: center; background-repeat: no-repeat; }}
+# h1, h2, h3, p, label, .stMarkdown {{ color: white !important; text-shadow: -2px -2px 0 #000033, 2px -2px 0 #000033, -2px 2px 0 #000033, 2px 2px 0 #000033, -2px 0px 0 #000033, 2px 0px 0 #000033, 0px -2px 0 #000033, 0px 2px 0 #000033; }}
+# textarea, .stTextArea textarea {{ background-color: rgba(255, 255, 255, 0.9) !important; color: black !important; border: 1px solid white !important; }}
+# textarea::placeholder {{ color: black !important; opacity: 0.4 !important; }}
+# .stNumberInput input {{ background-color: rgba(255, 255, 255, 0.9) !important; color: black !important; border: 1px solid white !important; }}
+# div.stButton > button {{ background-color: rgba(0, 0, 0, 0.7) !important; color: white !important; border: 1px solid white !important; }}
+# div.stButton > button:hover *{{ background-color: rgba(255, 255, 255, 0.7) !important; color: rgba(0, 0, 0, 1) !important; text-shadow: none !important; }}
+# @keyframes fadeIn {{ from {{opacity: 0; transform: translateY(20px);}}
+# to {{opacity: 1; transform: translateY(0);}} }} h1, h2, h3 {{ animation: fadeIn 1s ease-in-out; }}
+# .stButton > button {{ transition: all 0.3s ease-in-out; }} .stButton > button:hover {{ transform: scale(1.1); }}
+# </style>
+# """,
+# unsafe_allow_html=True,
+# )
+
+
 # Web details
-add_bg_from_url()
+# add_bg_from_url()
 st.set_page_config(page_title="Atlas Roots", page_icon="🌎", layout="wide")
 
 if "page" not in st.session_state:
     st.session_state.page = "welcome"
+    add_welcome_page_style()
 
 # PÁGINA 1: BIENVENIDA
 if st.session_state.page == "welcome":
@@ -209,6 +318,7 @@ if st.session_state.page == "welcome":
 
 # PÁGINA 2: BÚSQUEDA
 elif st.session_state.page == "search":
+    add_search_page_style()
 
     st.header("Find your next destination ✈️")
     st.markdown("Use the filters and describe your ideal place to discover")
@@ -293,18 +403,19 @@ elif st.session_state.page == "search":
 
     # RESTAURANTS DESCRIPTION
     use_description_rest = st.toggle("Restaurants 🍽️", value=True)
-    user_query = ""
+    restaurant_review_query = ""
+    # user_query = ""
 
     if use_description_rest:
         max_chars = 150
-        user_query = st.text_area(
+        restaurant_review_query = st.text_area(
             "✍️ Here you can specify about cuisine:",
             placeholder="Example: Asian food",
             value="Italian food",
             height=100,
         )
 
-        char_count = len(user_query)
+        char_count = len(restaurant_review_query)
         if char_count > max_chars:
             st.error(
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
@@ -314,17 +425,18 @@ elif st.session_state.page == "search":
 
     # MUSEUMS DESCRIPTION
     use_description_museum = st.toggle("Museums 🏛️", value=False)
-    user_query = ""
+    museum_review_query = ""
+    # user_query = ""
 
     if use_description_museum:
         max_chars = 150
-        user_query = st.text_area(
+        museum_review_query = st.text_area(
             "✍️ Here you can specify about museums:",
             placeholder="Example: Modern Art",
             height=100,
         )
 
-        char_count = len(user_query)
+        char_count = len(museum_review_query)
         if char_count > max_chars:
             st.error(
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
@@ -334,17 +446,18 @@ elif st.session_state.page == "search":
 
     # ACTIVITIES DESCRIPTION
     use_description_tdt = st.toggle("Things to do ⛸️🏄", value=False)
-    user_query = ""
+    thing_to_do_query = ""
+    # user_query = ""
 
     if use_description_tdt:
         max_chars = 150
-        user_query = st.text_area(
+        thing_to_do_query = st.text_area(
             "✍️ Here you can specify about activities:",
             placeholder="Example: Kayak",
             height=100,
         )
 
-        char_count = len(user_query)
+        char_count = len(thing_to_do_query)
         if char_count > max_chars:
             st.error(
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
@@ -354,17 +467,17 @@ elif st.session_state.page == "search":
 
     # PARKS DESCRIPTION
     use_description_park = st.toggle("Parks 🏞️", value=False)
-    user_query = ""
+    park_review_query = ""
 
     if use_description_park:
         max_chars = 150
-        user_query = st.text_area(
+        park_review_query = st.text_area(
             "✍️ Here you can specify about parks:",
             placeholder="Example: Green Fresh Parks",
             height=100,
         )
 
-        char_count = len(user_query)
+        char_count = len(park_review_query)
         if char_count > max_chars:
             st.error(
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
@@ -393,35 +506,71 @@ elif st.session_state.page == "search":
         # st.session_state.results = results_api.json().get('predictions', [])
 
         results_api = get_prediction(
-            user_query,
-            museum_review=use_description_museum,
-            park_review=use_description_park,
-            thing_to_do=use_description_tdt,
-            restaurant_review=use_description_rest,
+            query=user_query,
+            museum_review=museum_review_query,
+            park_review=park_review_query,
+            thing_to_do=thing_to_do_query,
+            restaurant_review=restaurant_review_query,
             top_k=top_k,
             seclusion=seclusion_range,
             budget_level=selected_budgets,
         )
+
+        # results_api = get_prediction(
+        # user_query,
+        # museum_review=use_description_museum,
+        # park_review=use_description_park,
+        # thing_to_do=use_description_tdt,
+        # restaurant_review=use_description_rest,
+        # top_k=top_k,
+        # seclusion=seclusion_range,
+        # budget_level=selected_budgets,
+        # )
+
         results = results_api.json()
         # st.write(results)
         best_cities = analyze_cities(results)
         loading_placeholder.empty()
 
-        all_city_names = best_cities["counts"]["restaurants"].keys()
-        best_restaurant_city = best_cities["best_per_category"]["restaurants"]
-        best_museum_city = best_cities["best_per_category"]["museum"]
-        best_parks_city = best_cities["best_per_category"]["parks"]
+        # all_city_names = best_cities["counts"]["restaurants"].keys()
+        all_city_names = set()
+        for category_counts in best_cities["counts"].values():
+            all_city_names.update(category_counts.keys())
+        all_city_names = list(all_city_names)
+
+        # if use_description_rest:
+        # best_restaurant_city = best_cities["best_per_category"]["restaurants"]
+        # if use_description_museum:
+        # best_museum_city = best_cities["best_per_category"]["museum"]
+        # if use_description_park:
+        # best_parks_city = best_cities["best_per_category"]["parks"]
+        best_restaurant_city = best_cities["best_per_category"].get("restaurants")
+        best_museum_city = best_cities["best_per_category"].get("museum")
+        best_parks_city = best_cities["best_per_category"].get("parks")
 
         # st.write(best_cities)
 
         st.markdown("<h1>Here you have😁🌟</h1>", unsafe_allow_html=True)
-        st.markdown(f"🏙️ Best City Overall → {best_cities["overall_best"]["city"]}")
-        st.markdown(f"🍽️ Best Restaurants → {best_restaurant_city['city']}")
-        st.markdown(f"🏛️ Best Museums → {best_museum_city['city']}")
-        st.markdown(f"🏞️ Best Parks → {best_parks_city['city']}")
-        st.markdown("---")
-        st.markdown("<h1>Results💫</h1>", unsafe_allow_html=True)
-        st.markdown("---")
+        # st.markdown(f"🏙️ Best City Overall → {best_cities["overall_best"]["city"]}")
+        # if use_description_rest:
+        # st.markdown(f"🍽️ Best Restaurants → {best_restaurant_city['city']}")
+        # if use_description_museum:
+        # st.markdown(f"🏛️ Best Museums → {best_museum_city['city']}")
+        # if use_description_park:
+        # st.markdown(f"🏞️ Best Parks → {best_parks_city['city']}")
+        # st.markdown("---")
+        # st.markdown("<h1>Results💫</h1>", unsafe_allow_html=True)
+        # st.markdown("---")
+        if best_cities["overall_best"]:
+            st.markdown(f"🏙️ Best City Overall → {best_cities['overall_best']['city']}")
+        else:
+            st.markdown("⚠️ No overall best city found.")
+        if best_restaurant_city:
+            st.markdown(f"🍽️ Best Restaurants → {best_restaurant_city['city']}")
+        if best_museum_city:
+            st.markdown(f"🏛️ Best Museums → {best_museum_city['city']}")
+        if best_parks_city:
+            st.markdown(f"🏞️ Best Parks → {best_parks_city['city']}")
 
         for city_name in all_city_names:
             col1, col2 = st.columns(2)  # Imagen y Texto
@@ -440,7 +589,7 @@ elif st.session_state.page == "search":
             with col1:
                 st.markdown(
                     f"""
-                    <div style='animation: fadeIn 1s ease-in-out 1s forwards; opacity:0;'>
+                    <div style='animation: fadeIn 1s ease-in-out 1s forwards; opacity:1;'>
                         <h1>📍 {city_name}</h1>
                         <h4>🌐 Country: {brc_country}</h4>
                         <h6>📝 {brc_description}</h6>
@@ -455,72 +604,83 @@ elif st.session_state.page == "search":
                 for city_image_filename in os.listdir("frontend/Ciudades"):
                     if str(brc_id) in city_image_filename:
                         file = city_image_filename
-                st.write(file)
+                # st.write(file)
                 st.image(f"frontend/Ciudades/{file}")
 
             col_a, col_b, col_c, col_d, col_e = st.columns(5)  # Expanders para REVIEWS
 
             # THINGS TO DO
-            with col_a:
-                with st.expander(f"Things to do:"):
-                    for_tdt = results["things to do"]["predictions"]
-                    brc_for_tdt = [
-                        review for review in for_tdt if review["city"] == city_name
-                    ]
-                    for review in brc_for_tdt:
-                        st.markdown(
-                            f"<h4>{review["name_place"]} with rating {review["rating"]}</h4>",
-                            unsafe_allow_html=True,
-                        )
+            if use_description_tdt:
+                with col_a:
+                    with st.expander(f"Things to do:"):
+                        for_tdt = results["things to do"]["predictions"]
+                        brc_for_tdt = [
+                            review for review in for_tdt if review["city"] == city_name
+                        ]
+                        for review in brc_for_tdt:
+                            st.markdown(
+                                f"""<div class='expander-content'>
+                                        <h4>{review["name_place"]} (Rating: {review["rating"]})</h4>
+                                        </div>""",
+                                unsafe_allow_html=True,
+                            )
 
             # RESTAURANT REVIEWS
-            with col_b:
-                with st.expander(f"Restaurant Reviews:"):
-                    restaurnt_reviews = results["restaurants"]["predictions"]
-                    brc_rest_reviews = [
-                        review
-                        for review in restaurnt_reviews
-                        if review["city"] == brc_name
-                    ]
-                    for review in brc_rest_reviews:
-                        st.markdown(
-                            f"<h4>{review["name_place"]}</h4>", unsafe_allow_html=True
-                        )
-                        st.markdown(
-                            f"<h6>{review["review"]}</h6>", unsafe_allow_html=True
-                        )
+            if use_description_rest:
+                with col_b:
+                    with st.expander(f"Restaurant Reviews:"):
+                        restaurnt_reviews = results["restaurants"]["predictions"]
+                        brc_rest_reviews = [
+                            review
+                            for review in restaurnt_reviews
+                            if review["city"] == brc_name
+                        ]
+                        for review in brc_rest_reviews:
+                            st.markdown(
+                                f"""<div class='expander-content'>
+                                        <h4>{review["name_place"]}</h4>
+                                        <h6>{review["review"]}</h6>
+                                        </div>""",
+                                unsafe_allow_html=True,
+                            )
 
             # MUSEUM REVIEWS
-            with col_c:
-                with st.expander(f"Museum Reviews:"):
-                    museum_reviews = results["museum"]["predictions"]
-                    brc_museum_reviews = [
-                        review
-                        for review in museum_reviews
-                        if review["city"] == brc_name
-                    ]
-                    for review in brc_museum_reviews:
-                        st.markdown(
-                            f"<h4>{review["name_place"]}</h4>", unsafe_allow_html=True
-                        )
-                        st.markdown(
-                            f"<h6>{review["review"]}</h6>", unsafe_allow_html=True
-                        )
+            if use_description_museum:
+                with col_c:
+                    with st.expander(f"Museum Reviews:"):
+                        museum_reviews = results["museum"]["predictions"]
+                        brc_museum_reviews = [
+                            review
+                            for review in museum_reviews
+                            if review["city"] == brc_name
+                        ]
+                        for review in brc_museum_reviews:
+                            st.markdown(
+                                f"""<div class='expander-content'>
+                                        <h4>{review["name_place"]}</h4>
+                                        <h6>{review["review"]}</h6>
+                                        </div>""",
+                                unsafe_allow_html=True,
+                            )
 
             # PARK REVIEWS
-            with col_d:
-                with st.expander(f"Park Reviews:"):
-                    parks_reviews = results["parks"]["predictions"]
-                    brc_parks_reviews = [
-                        review for review in parks_reviews if review["city"] == brc_name
-                    ]
-                    for review in brc_parks_reviews:
-                        st.markdown(
-                            f"<h4>{review["name_place"]}</h4>", unsafe_allow_html=True
-                        )
-                        st.markdown(
-                            f"<h6>{review["review"]}</h6>", unsafe_allow_html=True
-                        )
+            if use_description_park:
+                with col_d:
+                    with st.expander(f"Park Reviews:"):
+                        parks_reviews = results["parks"]["predictions"]
+                        brc_parks_reviews = [
+                            review
+                            for review in parks_reviews
+                            if review["city"] == brc_name
+                        ]
+                        for review in brc_parks_reviews:
+                            st.markdown(
+                                f"""<div class='expander-content'>
+                                        <h4>{review["name_place"]}</h4>
+                                        <h6>{review["review"]}</h6>
+                                        </div>""",
+                                unsafe_allow_html=True,
+                            )
 
             # ALTERNATIVES
             with col_e:
@@ -533,7 +693,10 @@ elif st.session_state.page == "search":
                         if each != city_name
                     ][:2]
                     st.markdown(
-                        f"<h4>{",".join(similar_cities)}</h4>", unsafe_allow_html=True
+                        f"""<div class='expander-content'>
+                                <h4>{", ".join(similar_cities)}</h4>
+                                </div>""",
+                        unsafe_allow_html=True,
                     )
 
             # st.dataframe(clusters_df.loc[clusters_df.cluster == cluster])
@@ -550,6 +713,7 @@ elif st.session_state.page == "search":
         # st.write(results)
 
         # SHOW MAP with the results
+
         map_df = clusters_df.loc[clusters_df.city.isin(all_city_names)][
             ["latitude and longitude"]
         ]
@@ -560,12 +724,12 @@ elif st.session_state.page == "search":
             lambda x: float(x.split(",")[1])
         )
 
-        st.map(map_df[["lat", "lon"]])
+        st.map(map_df[["lat", "lon"]], color="#121212")
 
         st.markdown(
-            """ #<div style='text-align: center;'>
-                    #<h2>Enjoy your travel and thanks for trusting us</h2>
-                    #<div style='font-size: 4em;'>😎🎒</div>
-                    #</div> """,
+            """ <div style='text-align: center;'>
+                    <h2>Enjoy your travel and thanks for trusting us</h2>
+                    <div style='font-size: 4em;'>😎🎒</div>
+                    </div> """,
             unsafe_allow_html=True,
         )
