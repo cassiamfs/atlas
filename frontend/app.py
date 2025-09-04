@@ -203,7 +203,7 @@ def add_search_page_style():
         p, ol, ul, dl {{
             margin: 0px 0px 1rem;
             padding: 0px;
-            font-size: 1.3rem  !important;
+            font-size: 1.1rem  !important;
             font-weight: 400;
         }}
 
@@ -468,10 +468,10 @@ elif st.session_state.page == "search":
 
     st.markdown("---")
 
-    col1, col2 = st.columns([1, 9])
+    col1, col2 = st.columns([1, 7])
     with col1:
         top_k = st.number_input(
-            "Amount of results", min_value=1, max_value=5, value=3, step=1, format="%d"
+            "How many cities?", min_value=1, max_value=5, value=3, step=1, format="%d"
         )
 
     # FIND CITIES (Button for search)
@@ -568,90 +568,100 @@ elif st.session_state.page == "search":
                 if file:
                     st.image(f"frontend/Ciudades/{file}")
 
-            col_a, col_b, col_c, col_d, col_e = st.columns(5)
+            expanders = []
 
             # THINGS TO DO
             if use_description_tdt and "things to do" in results:
-                with col_a:
-                    with st.expander("Activities:"):
-                        for_tdt = results["things to do"]["predictions"]
-                        brc_for_tdt = [r for r in for_tdt if r["city"] == city_name]
-                        for review in brc_for_tdt:
-                            st.markdown(
-                                f"""<div class='expander-content'>
-                                        <h4>{review["name_place"]} (Rating: {review["rating"]})</h4>
-                                    </div>""",
-                                unsafe_allow_html=True,
-                            )
+                expanders.append(
+                    (
+                        "Activities:",
+                        results["things to do"]["predictions"],
+                        city_name,
+                        "activity",
+                    )
+                )
 
             # RESTAURANTS
             if best_restaurant_city and "restaurants" in results:
-                with col_b:
-                    with st.expander("Restaurant Reviews:"):
-                        restaurnt_reviews = results["restaurants"]["predictions"]
-                        brc_rest_reviews = [
-                            r for r in restaurnt_reviews if r["city"] == city_name
-                        ]
-                        for review in brc_rest_reviews:
-                            st.markdown(
-                                f"""<div class='expander-content'>
-                                        <h4>{review["name_place"]}</h4>
-                                        <h6>{review["review"]}</h6>
-                                    </div>""",
-                                unsafe_allow_html=True,
-                            )
+                expanders.append(
+                    (
+                        "Restaurant Reviews:",
+                        results["restaurants"]["predictions"],
+                        city_name,
+                        "restaurant",
+                    )
+                )
 
             # MUSEUMS
             if best_museum_city and "museum" in results:
-                with col_c:
-                    with st.expander("Museum Reviews:"):
-                        museum_reviews = results["museum"]["predictions"]
-                        brc_museum_reviews = [
-                            r for r in museum_reviews if r["city"] == city_name
-                        ]
-                        for review in brc_museum_reviews:
-                            st.markdown(
-                                f"""<div class='expander-content'>
-                                        <h4>{review["name_place"]}</h4>
-                                        <h6>{review["review"]}</h6>
-                                    </div>""",
-                                unsafe_allow_html=True,
-                            )
+                expanders.append(
+                    (
+                        "Museum Reviews:",
+                        results["museum"]["predictions"],
+                        city_name,
+                        "museum",
+                    )
+                )
 
             # PARKS
             if best_parks_city and "parks" in results:
-                with col_d:
-                    with st.expander("Park Reviews:"):
-                        parks_reviews = results["parks"]["predictions"]
-                        brc_parks_reviews = [
-                            r for r in parks_reviews if r["city"] == city_name
-                        ]
-                        for review in brc_parks_reviews:
+                expanders.append(
+                    (
+                        "Park Reviews:",
+                        results["parks"]["predictions"],
+                        city_name,
+                        "park",
+                    )
+                )
+
+            # SIMILAR CITIES (no viene de results, lo tratamos aparte)
+            similar_cities = [
+                each
+                for each in clusters_df.loc[clusters_df.cluster == cluster].city.values
+                if each != city_name
+            ][:2]
+            if similar_cities:
+                expanders.append(
+                    (
+                        "Similar Cities:",
+                        [
+                            {
+                                "name_place": "<br>".join(
+                                    f"• {city}" for city in similar_cities
+                                )
+                            }
+                        ],
+                        city_name,
+                        "similar",
+                    )
+                )
+
+            # Crear las columnas en función de cuántos expanders haya
+            cols = st.columns(len(expanders)) if expanders else []
+
+            # Pintar cada expander en su columna correspondiente
+            for (title, items, city_name, exp_type), col in zip(expanders, cols):
+                with col:
+                    with st.expander(title):
+                        if exp_type == "similar":
                             st.markdown(
                                 f"""<div class='expander-content'>
-                                        <h4>{review["name_place"]}</h4>
-                                        <h6>{review["review"]}</h6>
+                                        <h4>{items[0]['name_place']}</h4>
                                     </div>""",
                                 unsafe_allow_html=True,
                             )
-
-            # SIMILAR CITIES
-            with col_e:
-                with st.expander("Similar Cities:"):
-                    similar_cities = [
-                        each
-                        for each in clusters_df.loc[
-                            clusters_df.cluster == cluster
-                        ].city.values
-                        if each != city_name
-                    ][:2]
-                    if similar_cities:
-                        st.markdown(
-                            f"""<div class='expander-content'>
-                                    <h4>{", ".join(similar_cities)}</h4>
-                                </div>""",
-                            unsafe_allow_html=True,
-                        )
+                        else:
+                            filtered_items = [
+                                r for r in items if r["city"] == city_name
+                            ]
+                            for review in filtered_items:
+                                st.markdown(
+                                    f"""<div class='expander-content'>
+                                            <h4>{review.get('name_place', '')} (Rating: {review.get('rating', '')})</h4>
+                                            <h6>{review.get('review', '')}</h6>
+                                        </div>""",
+                                    unsafe_allow_html=True,
+                                )
 
             st.markdown("---")
             time.sleep(0.4)
@@ -672,7 +682,7 @@ elif st.session_state.page == "search":
 
         st.markdown("---")
 
-        # ✅ MAP
+        # SHOW MAP
         map_df = clusters_df.loc[clusters_df.city.isin(all_city_names)][
             ["latitude and longitude"]
         ].copy()
@@ -685,8 +695,6 @@ elif st.session_state.page == "search":
             )
             map_df.drop("latitude and longitude", axis=1, inplace=True)
             st.map(map_df[["lat", "lon"]], color="#D71111", zoom=1.2, size=130000)
-
-        st.dataframe(map_df)
 
         st.markdown(
             """ <div style='text-align: center;'>
