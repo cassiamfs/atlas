@@ -124,7 +124,11 @@ def search_places_with_chroma(query: str, seclusion: list[int], budget_level: li
             budget_level = [int(budget_level)]
         filter_conditions.append({'budget_level': {'$in': budget_level}})
     if region:
-        filter_conditions.append({'region': region})
+        if "," in region:
+            region = [str(b) for b in region.split(",")]
+        else:
+            region = [str(region)]
+        filter_conditions.append({'region': {'$in': region}})
 
 
     if seclusion or budget_level or region:
