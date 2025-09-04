@@ -361,8 +361,7 @@ elif st.session_state.page == "search":
         max_chars = 150
         user_query = st.text_area(
             "🔥✍️ Describe your destination:",
-            value="Small city on the beach",
-            placeholder="Example: Quiet town near the sea with museums",
+            placeholder="Example: Small town near the sea with pretty flowers",
             height=100,
         )
 
@@ -377,15 +376,14 @@ elif st.session_state.page == "search":
         st.markdown("---")
 
     # RESTAURANTS DESCRIPTION
-    use_description_rest = st.toggle("Restaurants 🍽️", value=True)
+    use_description_rest = st.toggle("Restaurants 🍽️", value=False)
     restaurant_review_query = ""
 
     if use_description_rest:
         max_chars = 150
         restaurant_review_query = st.text_area(
             "✍️ Here you can specify about cuisine:",
-            placeholder="Example: Asian food",
-            value="Italian food",
+            placeholder="Example: Italian food",
             height=100,
         )
 
