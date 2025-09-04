@@ -67,9 +67,30 @@ def search_all_in_one(
 
     review_results_object = {}
 
-    for idx, each in enumerate(user_queries):
-        if len(each) > 2:
-            review_results = search_reviews_with_chroma(review = each, top_k=top_k_reviews, type_of_places=types_of_places[idx], cities=best_cities_names)
-            review_results_object[types_of_places[idx]] = review_results
+    #Testing default queries
+    default_queries = {
+        'restaurants': 'best restaurants',
+        'museum': 'best museums',
+        'things to do': 'best things to do',
+        'parks': 'best parks'
+    }
+
+    # Use either user query or default.
+    has_specific_input = any(len(q.strip()) > 0 for q in user_queries)
+
+    for idx, user_query in enumerate(user_queries):
+        place_type = types_of_places[idx]
+
+        #if user gives input for this category, use it; otherwise, use the default.
+        if len(user_query.strip()) > 0 or not has_specific_input:
+            query_to_use = user_query.strip() if len(user_query.strip()) > 0 else default_queries[place_type]
+
+            review_results = search_reviews_with_chroma(
+                review=query_to_use,
+                top_k=top_k_reviews,
+                type_of_places=place_type,
+                cities=best_cities_names
+            )
+            review_results_object[place_type] = review_results
 
     return review_results_object
