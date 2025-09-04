@@ -379,7 +379,6 @@ elif st.session_state.page == "search":
     # RESTAURANTS DESCRIPTION
     use_description_rest = st.toggle("Restaurants 🍽️", value=True)
     restaurant_review_query = ""
-    # user_query = ""
 
     if use_description_rest:
         max_chars = 150
@@ -403,7 +402,6 @@ elif st.session_state.page == "search":
     # MUSEUMS DESCRIPTION
     use_description_museum = st.toggle("Museums 🏛️", value=False)
     museum_review_query = ""
-    # user_query = ""
 
     if use_description_museum:
         max_chars = 150
@@ -426,7 +424,6 @@ elif st.session_state.page == "search":
     # ACTIVITIES DESCRIPTION
     use_description_tdt = st.toggle("Activities ⛸️🏄", value=False)
     thing_to_do_query = ""
-    # user_query = ""
 
     if use_description_tdt:
         max_chars = 150
@@ -483,11 +480,6 @@ elif st.session_state.page == "search":
                 unsafe_allow_html=True,
             )
 
-        # results_api = get_prediction(user_query, top_k, selected_regions, selected_budgets, seclusion_range)
-        # loading_placeholder.empty()
-
-        # st.session_state.results = results_api.json().get('predictions', [])
-
         results_api = get_prediction(
             query=user_query,
             museum_review=museum_review_query,
@@ -499,38 +491,24 @@ elif st.session_state.page == "search":
             budget_level=selected_budgets,
         )
 
-        # results_api = get_prediction(
-        # user_query,
-        # museum_review=use_description_museum,
-        # park_review=use_description_park,
-        # thing_to_do=use_description_tdt,
-        # restaurant_review=use_description_rest,
-        # top_k=top_k,
-        # seclusion=seclusion_range,
-        # budget_level=selected_budgets,
-        # )
-
         results = results_api.json()
         best_cities = analyze_cities(results)
         loading_placeholder.empty()
 
-        # ✅ Obtener todas las ciudades sin depender de "restaurants"
         all_city_names = set()
         for category_counts in best_cities["counts"].values():
             all_city_names.update(category_counts.keys())
         all_city_names = list(all_city_names)
 
-        # ✅ Acceso seguro a cada categoría
         best_restaurant_city = best_cities["best_per_category"].get("restaurants")
         best_museum_city = best_cities["best_per_category"].get("museum")
         best_parks_city = best_cities["best_per_category"].get("parks")
 
-        # ✅ Mostrar resultados principales
         st.markdown("---")
         st.markdown("<h1>Results 💫</h1>", unsafe_allow_html=True)
         st.markdown("---")
 
-        # ✅ Mostrar cada ciudad encontrada
+        # Mostrar cada ciudad encontrada
         for city_name in all_city_names:
             col1, col2 = st.columns(2)
 
@@ -614,7 +592,7 @@ elif st.session_state.page == "search":
                     )
                 )
 
-            # SIMILAR CITIES (no viene de results, lo tratamos aparte)
+            # SIMILAR CITIES
             similar_cities = [
                 each
                 for each in clusters_df.loc[clusters_df.cluster == cluster].city.values
@@ -636,10 +614,8 @@ elif st.session_state.page == "search":
                     )
                 )
 
-            # Crear las columnas en función de cuántos expanders haya
             cols = st.columns(len(expanders)) if expanders else []
 
-            # Pintar cada expander en su columna correspondiente
             for (title, items, city_name, exp_type), col in zip(expanders, cols):
                 with col:
                     with st.expander(title):
