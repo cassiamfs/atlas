@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
 import requests
-from streamlit_lottie import st_lottie
 import time
 import os
-import streamlit_map as stm
 
 clusters_df = pd.read_csv("frontend/df_new.csv")
 
@@ -147,6 +145,7 @@ def add_welcome_page_style():
     st.markdown(
         f"""
          <style>
+
          .stApp {{
              background-image: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
              background-size: cover;
@@ -200,6 +199,15 @@ def add_search_page_style():
             color: white !important;
         }}
 
+
+        p, ol, ul, dl {{
+            margin: 0px 0px 1rem;
+            padding: 0px;
+            font-size: 1.3rem  !important;
+            font-weight: 400;
+        }}
+
+
         /* Estilos para inputs y botones para que contrasten */
         textarea, .stTextArea textarea, .stNumberInput input {{
             background-color: rgba(255, 255, 255, 0.9) !important;
@@ -244,35 +252,13 @@ def add_search_page_style():
             color: #E0E0E0 !important; /* Un poco más suave que el blanco puro */
         }}
 
+
         </style>
         """,
         unsafe_allow_html=True,
     )
 
 
-# def add_bg_from_url():
-# st.markdown(
-# f"""
-# <style>
-# .stApp {{ background-image: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
-# background-size: cover; background-position: center; background-repeat: no-repeat; }}
-# h1, h2, h3, p, label, .stMarkdown {{ color: white !important; text-shadow: -2px -2px 0 #000033, 2px -2px 0 #000033, -2px 2px 0 #000033, 2px 2px 0 #000033, -2px 0px 0 #000033, 2px 0px 0 #000033, 0px -2px 0 #000033, 0px 2px 0 #000033; }}
-# textarea, .stTextArea textarea {{ background-color: rgba(255, 255, 255, 0.9) !important; color: black !important; border: 1px solid white !important; }}
-# textarea::placeholder {{ color: black !important; opacity: 0.4 !important; }}
-# .stNumberInput input {{ background-color: rgba(255, 255, 255, 0.9) !important; color: black !important; border: 1px solid white !important; }}
-# div.stButton > button {{ background-color: rgba(0, 0, 0, 0.7) !important; color: white !important; border: 1px solid white !important; }}
-# div.stButton > button:hover *{{ background-color: rgba(255, 255, 255, 0.7) !important; color: rgba(0, 0, 0, 1) !important; text-shadow: none !important; }}
-# @keyframes fadeIn {{ from {{opacity: 0; transform: translateY(20px);}}
-# to {{opacity: 1; transform: translateY(0);}} }} h1, h2, h3 {{ animation: fadeIn 1s ease-in-out; }}
-# .stButton > button {{ transition: all 0.3s ease-in-out; }} .stButton > button:hover {{ transform: scale(1.1); }}
-# </style>
-# """,
-# unsafe_allow_html=True,
-# )
-
-
-# Web details
-# add_bg_from_url()
 st.set_page_config(page_title="Atlas Roots", page_icon="🌎", layout="wide")
 
 if "page" not in st.session_state:
@@ -302,7 +288,7 @@ if st.session_state.page == "welcome":
 elif st.session_state.page == "search":
     add_search_page_style()
 
-    st.header("Find your next destination ✈️")
+    st.markdown("<h1>Find your next destination ✈️</h1>", unsafe_allow_html=True)
     st.markdown("Use the filters and describe your ideal place to discover")
 
     # FILTROS
@@ -333,8 +319,11 @@ elif st.session_state.page == "search":
             if col.checkbox(region_name, key=f"region_{region_id}"):
                 selected_regions.append(region_id)
 
+    st.markdown("---")
+
     use_seclusion_filter = st.toggle("👤 Level of Quieteness")
     seclusion_range = (1, 5)
+
     if use_seclusion_filter:
         col1, _ = st.columns([2, 5])
         with col1:
@@ -344,6 +333,8 @@ elif st.session_state.page == "search":
             start, end = seclusion_range
             seclusion_range = [str(each) for each in range(start, end + 1)]
             seclusion_range = ",".join(seclusion_range)
+
+    st.markdown("---")
 
     use_budget_filter = st.toggle("Filter by Budget 💸")
     selected_budgets = []
@@ -381,7 +372,9 @@ elif st.session_state.page == "search":
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
             )
         else:
-            st.write(f"✅")
+            st.write(f"")
+
+        st.markdown("---")
 
     # RESTAURANTS DESCRIPTION
     use_description_rest = st.toggle("Restaurants 🍽️", value=True)
@@ -403,7 +396,9 @@ elif st.session_state.page == "search":
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
             )
         else:
-            st.write(f"✅")
+            st.write(f"")
+
+        st.markdown("---")
 
     # MUSEUMS DESCRIPTION
     use_description_museum = st.toggle("Museums 🏛️", value=False)
@@ -424,7 +419,9 @@ elif st.session_state.page == "search":
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
             )
         else:
-            st.write(f"✅")
+            st.write(f"")
+
+        st.markdown("---")
 
     # ACTIVITIES DESCRIPTION
     use_description_tdt = st.toggle("Activities ⛸️🏄", value=False)
@@ -445,7 +442,9 @@ elif st.session_state.page == "search":
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
             )
         else:
-            st.write(f"✅")
+            st.write(f"")
+
+        st.markdown("---")
 
     # PARKS DESCRIPTION
     use_description_park = st.toggle("Parks 🏞️", value=False)
@@ -465,7 +464,9 @@ elif st.session_state.page == "search":
                 f"We recommend using a maximum of 150 characters. You are using {char_count}"
             )
         else:
-            st.write(f"✅")
+            st.write(f"")
+
+    st.markdown("---")
 
     col1, col2 = st.columns([1, 9])
     with col1:
@@ -682,7 +683,10 @@ elif st.session_state.page == "search":
             map_df["lon"] = map_df["latitude and longitude"].apply(
                 lambda x: float(x.split(",")[1])
             )
-            st.map(map_df[["lat", "lon"]], color="#E8250C", zoom=1.2)
+            map_df.drop("latitude and longitude", axis=1, inplace=True)
+            st.map(map_df[["lat", "lon"]], color="#D71111", zoom=1.2, size=130000)
+
+        st.dataframe(map_df)
 
         st.markdown(
             """ <div style='text-align: center;'>
