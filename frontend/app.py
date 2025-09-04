@@ -4,6 +4,7 @@ import requests
 from streamlit_lottie import st_lottie
 import time
 import os
+import streamlit_map as stm
 
 clusters_df = pd.read_csv("frontend/df_new.csv")
 
@@ -34,51 +35,42 @@ def analyze_cities(data):
 
     # STEP 1: Collect all city data from the input
     for category, content in data.items():
-        # Skip if category doesn't have predictions or is empty
         if not content or "predictions" not in content or not content["predictions"]:
             continue
 
-        # Process each place in this category
         for place in content["predictions"]:
             city = place["city"]
             rating = place["rating"]
 
-            # Initialize city entry if it doesn't exist
             if city not in city_data:
                 city_data[city] = {"categories": {}, "all_ratings": []}
 
-            # Initialize category list for this city if it doesn't exist
             if category not in city_data[city]["categories"]:
                 city_data[city]["categories"][category] = []
 
-            # Store the rating in both category-specific and overall lists
             city_data[city]["categories"][category].append(rating)
             city_data[city]["all_ratings"].append(rating)
 
     # Initialize results dictionary
     results = {
-        "counts": {},  # How many places each city has per category
-        "best_per_category": {},  # Best city for each category
-        "overall_best": None,  # Best city overall
+        "counts": {},
+        "best_per_category": {},
+        "overall_best": None,
     }
 
-    # Return empty results if no data found
     if not city_data:
         return results
 
     # STEP 2: Count how many places each city has in each category
     for category, content in data.items():
         if content and "predictions" in content and content["predictions"]:
-            city_counts = {}  # Will store {city: count} for this category
-
-            # Count places for each city in this category
+            city_counts = {}
             for place in content["predictions"]:
                 city = place["city"]
                 city_counts[city] = city_counts.get(city, 0) + 1
-
             results["counts"][category] = city_counts
 
-    # STEP 3: Find the best city for each category (highest average rating)
+    # STEP 3: Find the best city for each category
     for category, content in data.items():
         if not content or "predictions" not in content or not content["predictions"]:
             continue
@@ -86,19 +78,14 @@ def analyze_cities(data):
         best_city = None
         best_avg = 0
 
-        # Check each city that appears in this category
         for city, info in city_data.items():
             if category in info["categories"]:
-                # Calculate average rating for this city in this category
                 ratings_in_category = info["categories"][category]
                 avg = sum(ratings_in_category) / len(ratings_in_category)
-
-                # Update best city if this one is better
                 if avg > best_avg:
                     best_avg = avg
                     best_city = city
 
-        # Store the best city info if we found one
         if best_city:
             results["best_per_category"][category] = {
                 "city": best_city,
@@ -110,18 +97,13 @@ def analyze_cities(data):
     best_city = None
     best_avg = 0
 
-    # Check each city's overall performance
     for city, info in city_data.items():
-        # Calculate average of ALL ratings for this city
-        if info["all_ratings"]:  # Make sure there are ratings
+        if info["all_ratings"]:
             overall_avg = sum(info["all_ratings"]) / len(info["all_ratings"])
-
-            # Update best city if this one is better
             if overall_avg > best_avg:
                 best_avg = overall_avg
                 best_city = city
 
-    # Store overall best city information
     if best_city:
         results["overall_best"] = {
             "city": best_city,
@@ -445,7 +427,7 @@ elif st.session_state.page == "search":
             st.write(f"✅")
 
     # ACTIVITIES DESCRIPTION
-    use_description_tdt = st.toggle("Things to do ⛸️🏄", value=False)
+    use_description_tdt = st.toggle("Activities ⛸️🏄", value=False)
     thing_to_do_query = ""
     # user_query = ""
 
@@ -528,56 +510,33 @@ elif st.session_state.page == "search":
         # )
 
         results = results_api.json()
-        # st.write(results)
         best_cities = analyze_cities(results)
         loading_placeholder.empty()
 
-        # all_city_names = best_cities["counts"]["restaurants"].keys()
+        # ✅ Obtener todas las ciudades sin depender de "restaurants"
         all_city_names = set()
         for category_counts in best_cities["counts"].values():
             all_city_names.update(category_counts.keys())
         all_city_names = list(all_city_names)
 
-        # if use_description_rest:
-        # best_restaurant_city = best_cities["best_per_category"]["restaurants"]
-        # if use_description_museum:
-        # best_museum_city = best_cities["best_per_category"]["museum"]
-        # if use_description_park:
-        # best_parks_city = best_cities["best_per_category"]["parks"]
+        # ✅ Acceso seguro a cada categoría
         best_restaurant_city = best_cities["best_per_category"].get("restaurants")
         best_museum_city = best_cities["best_per_category"].get("museum")
         best_parks_city = best_cities["best_per_category"].get("parks")
 
-        # st.write(best_cities)
+        # ✅ Mostrar resultados principales
+        st.markdown("---")
+        st.markdown("<h1>Results 💫</h1>", unsafe_allow_html=True)
+        st.markdown("---")
 
-        st.markdown("<h1>Here you have😁🌟</h1>", unsafe_allow_html=True)
-        # st.markdown(f"🏙️ Best City Overall → {best_cities["overall_best"]["city"]}")
-        # if use_description_rest:
-        # st.markdown(f"🍽️ Best Restaurants → {best_restaurant_city['city']}")
-        # if use_description_museum:
-        # st.markdown(f"🏛️ Best Museums → {best_museum_city['city']}")
-        # if use_description_park:
-        # st.markdown(f"🏞️ Best Parks → {best_parks_city['city']}")
-        # st.markdown("---")
-        # st.markdown("<h1>Results💫</h1>", unsafe_allow_html=True)
-        # st.markdown("---")
-        if best_cities["overall_best"]:
-            st.markdown(f"🏙️ Best City Overall → {best_cities['overall_best']['city']}")
-        else:
-            st.markdown("⚠️ No overall best city found.")
-        if best_restaurant_city:
-            st.markdown(f"🍽️ Best Restaurants → {best_restaurant_city['city']}")
-        if best_museum_city:
-            st.markdown(f"🏛️ Best Museums → {best_museum_city['city']}")
-        if best_parks_city:
-            st.markdown(f"🏞️ Best Parks → {best_parks_city['city']}")
-
+        # ✅ Mostrar cada ciudad encontrada
         for city_name in all_city_names:
-            col1, col2 = st.columns(2)  # Imagen y Texto
+            col1, col2 = st.columns(2)
 
-            # Name of the CITY
-            brc_name = best_restaurant_city["city"]
             brc_row = clusters_df.loc[clusters_df.city == city_name]
+            if brc_row.empty:
+                continue  # saltar si no está en df
+
             cluster = brc_row.cluster.values[0]
             brc_country = brc_row.country.values[0]
             brc_description = brc_row.short_description.values[0]
@@ -585,7 +544,6 @@ elif st.session_state.page == "search":
             brc_budget = brc_row.budget_level.values[0]
             brc_id = brc_row.id.values[0]
 
-            # SHOW RESULTS
             with col1:
                 st.markdown(
                     f"""
@@ -601,90 +559,84 @@ elif st.session_state.page == "search":
                 )
 
             with col2:
+                file = None
                 for city_image_filename in os.listdir("frontend/Ciudades"):
                     if str(brc_id) in city_image_filename:
                         file = city_image_filename
-                # st.write(file)
-                st.image(f"frontend/Ciudades/{file}")
+                        break
+                if file:
+                    st.image(f"frontend/Ciudades/{file}")
 
-            col_a, col_b, col_c, col_d, col_e = st.columns(5)  # Expanders para REVIEWS
+            col_a, col_b, col_c, col_d, col_e = st.columns(5)
 
             # THINGS TO DO
-            if use_description_tdt:
+            if use_description_tdt and "things to do" in results:
                 with col_a:
-                    with st.expander(f"Things to do:"):
+                    with st.expander("Activities:"):
                         for_tdt = results["things to do"]["predictions"]
-                        brc_for_tdt = [
-                            review for review in for_tdt if review["city"] == city_name
-                        ]
+                        brc_for_tdt = [r for r in for_tdt if r["city"] == city_name]
                         for review in brc_for_tdt:
                             st.markdown(
                                 f"""<div class='expander-content'>
                                         <h4>{review["name_place"]} (Rating: {review["rating"]})</h4>
-                                        </div>""",
+                                    </div>""",
                                 unsafe_allow_html=True,
                             )
 
-            # RESTAURANT REVIEWS
-            if use_description_rest:
+            # RESTAURANTS
+            if best_restaurant_city and "restaurants" in results:
                 with col_b:
-                    with st.expander(f"Restaurant Reviews:"):
+                    with st.expander("Restaurant Reviews:"):
                         restaurnt_reviews = results["restaurants"]["predictions"]
                         brc_rest_reviews = [
-                            review
-                            for review in restaurnt_reviews
-                            if review["city"] == brc_name
+                            r for r in restaurnt_reviews if r["city"] == city_name
                         ]
                         for review in brc_rest_reviews:
                             st.markdown(
                                 f"""<div class='expander-content'>
                                         <h4>{review["name_place"]}</h4>
                                         <h6>{review["review"]}</h6>
-                                        </div>""",
+                                    </div>""",
                                 unsafe_allow_html=True,
                             )
 
-            # MUSEUM REVIEWS
-            if use_description_museum:
+            # MUSEUMS
+            if best_museum_city and "museum" in results:
                 with col_c:
-                    with st.expander(f"Museum Reviews:"):
+                    with st.expander("Museum Reviews:"):
                         museum_reviews = results["museum"]["predictions"]
                         brc_museum_reviews = [
-                            review
-                            for review in museum_reviews
-                            if review["city"] == brc_name
+                            r for r in museum_reviews if r["city"] == city_name
                         ]
                         for review in brc_museum_reviews:
                             st.markdown(
                                 f"""<div class='expander-content'>
                                         <h4>{review["name_place"]}</h4>
                                         <h6>{review["review"]}</h6>
-                                        </div>""",
+                                    </div>""",
                                 unsafe_allow_html=True,
                             )
 
-            # PARK REVIEWS
-            if use_description_park:
+            # PARKS
+            if best_parks_city and "parks" in results:
                 with col_d:
-                    with st.expander(f"Park Reviews:"):
+                    with st.expander("Park Reviews:"):
                         parks_reviews = results["parks"]["predictions"]
                         brc_parks_reviews = [
-                            review
-                            for review in parks_reviews
-                            if review["city"] == brc_name
+                            r for r in parks_reviews if r["city"] == city_name
                         ]
                         for review in brc_parks_reviews:
                             st.markdown(
                                 f"""<div class='expander-content'>
                                         <h4>{review["name_place"]}</h4>
                                         <h6>{review["review"]}</h6>
-                                        </div>""",
+                                    </div>""",
                                 unsafe_allow_html=True,
                             )
 
-            # ALTERNATIVES
+            # SIMILAR CITIES
             with col_e:
-                with st.expander(f"Similar Cities:"):
+                with st.expander("Similar Cities:"):
                     similar_cities = [
                         each
                         for each in clusters_df.loc[
@@ -692,44 +644,50 @@ elif st.session_state.page == "search":
                         ].city.values
                         if each != city_name
                     ][:2]
-                    st.markdown(
-                        f"""<div class='expander-content'>
-                                <h4>{", ".join(similar_cities)}</h4>
+                    if similar_cities:
+                        st.markdown(
+                            f"""<div class='expander-content'>
+                                    <h4>{", ".join(similar_cities)}</h4>
                                 </div>""",
-                        unsafe_allow_html=True,
-                    )
+                            unsafe_allow_html=True,
+                        )
 
-            # st.dataframe(clusters_df.loc[clusters_df.cluster == cluster])
-            # st.text(similar_cities)
             st.markdown("---")
             time.sleep(0.4)
+        st.markdown("<h1>Here you have 😁🌟</h1>", unsafe_allow_html=True)
 
-        # brc_rest_rating =  best_restaurant_city["avg_rating"]
-        # brc_rest_count = best_restaurant_city["count"]
+        if best_cities["overall_best"]:
+            st.markdown(f"🏙️ Best City Overall → {best_cities['overall_best']['city']}")
+        else:
+            st.markdown(
+                "⚠️ Please customize with at least one of the categories (Restaurant, Museum, Park or Activity)."
+            )
+        if best_restaurant_city:
+            st.markdown(f"🍽️ Best Restaurants → {best_restaurant_city['city']}")
+        if best_museum_city:
+            st.markdown(f"🏛️ Best Museums → {best_museum_city['city']}")
+        if best_parks_city:
+            st.markdown(f"🏞️ Best Parks → {best_parks_city['city']}")
 
-        # -------------------------------------------------------------------------
+        st.markdown("---")
 
-        # st.write(best_cities)
-        # st.write(results)
-
-        # SHOW MAP with the results
-
+        # ✅ MAP
         map_df = clusters_df.loc[clusters_df.city.isin(all_city_names)][
             ["latitude and longitude"]
-        ]
-        map_df["lat"] = clusters_df["latitude and longitude"].apply(
-            lambda x: float(x.split(",")[0])
-        )
-        map_df["lon"] = clusters_df["latitude and longitude"].apply(
-            lambda x: float(x.split(",")[1])
-        )
-
-        st.map(map_df[["lat", "lon"]], color="#121212")
+        ].copy()
+        if not map_df.empty:
+            map_df["lat"] = map_df["latitude and longitude"].apply(
+                lambda x: float(x.split(",")[0])
+            )
+            map_df["lon"] = map_df["latitude and longitude"].apply(
+                lambda x: float(x.split(",")[1])
+            )
+            st.map(map_df[["lat", "lon"]], color="#E8250C", zoom=1.2)
 
         st.markdown(
             """ <div style='text-align: center;'>
                     <h2>Enjoy your travel and thanks for trusting us</h2>
                     <div style='font-size: 4em;'>😎🎒</div>
-                    </div> """,
+                </div> """,
             unsafe_allow_html=True,
         )
