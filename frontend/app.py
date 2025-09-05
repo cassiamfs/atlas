@@ -122,6 +122,7 @@ def get_prediction(
     park_review,
     seclusion,
     budget_level,
+    region,
 ):
     response = requests.get(
         "https://atlas-518816232020.europe-southwest1.run.app/search_all_in_one",
@@ -135,6 +136,7 @@ def get_prediction(
             "top_k_reviews": 50,
             "seclusion": seclusion,
             "budget_level": budget_level,
+            "region": region,
         },
     )
     return response
@@ -317,7 +319,9 @@ elif st.session_state.page == "search":
         for idx, (region_id, region_name) in enumerate(region_map.items()):
             col = columns[idx % len(columns)]
             if col.checkbox(region_name, key=f"region_{region_id}"):
-                selected_regions.append(region_id)
+                selected_regions.append(region_name)
+
+        selected_regions = ",".join(selected_regions)
 
     st.markdown("---")
 
@@ -487,6 +491,7 @@ elif st.session_state.page == "search":
             top_k=top_k,
             seclusion=seclusion_range,
             budget_level=selected_budgets,
+            region=selected_regions,
         )
 
         results = results_api.json()
@@ -537,12 +542,12 @@ elif st.session_state.page == "search":
 
             with col2:
                 file = None
-                for city_image_filename in os.listdir("frontend/Ciudades"):
+                for city_image_filename in os.listdir("frontend/city_pics"):
                     if str(brc_id) in city_image_filename:
                         file = city_image_filename
                         break
                 if file:
-                    st.image(f"frontend/Ciudades/{file}")
+                    st.image(f"frontend/city_pics/{file}")
 
             expanders = []
 
