@@ -478,7 +478,7 @@ elif st.session_state.page == "search":
         loading_placeholder = st.empty()
         with loading_placeholder.container():
             st.markdown(
-                "<h3 style='text-align: center;'>🧭Working on it... Get ready for your travel🧳</h3>",
+                "<h3 style='text-align: center;'>🧭 Working on it... Get ready for your travel 🧳</h3>",
                 unsafe_allow_html=True,
             )
 
@@ -542,12 +542,12 @@ elif st.session_state.page == "search":
 
             with col2:
                 file = None
-                for city_image_filename in os.listdir("frontend/city_pics"):
+                for city_image_filename in os.listdir("frontend/city_pics_"):
                     if str(brc_id) in city_image_filename:
                         file = city_image_filename
                         break
                 if file:
-                    st.image(f"frontend/city_pics/{file}")
+                    st.image(f"frontend/city_pics_/{file}")
 
             expanders = []
 
